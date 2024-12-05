@@ -130,7 +130,7 @@ def main():
                     portfolio_collection = trades_db.portfolio_value
                     portfolio_collection.delete_many({})
                     portfolio_collection.insert_one({'portfolio_percentage': (portfolio_value-50000)/50000})
-                    portfolio_collection.insert_one({'ndaq_percentage': (get_latest_price('NDAQ')-80.08)/80.08})
+                    portfolio_collection.insert_one({'ndaq_percentage': (get_latest_price('QQQ')-80.08)/80.08})
                     portfolio_collection.insert_one({'spy_percentage': (get_latest_price('SPY')-590.50)/590.50})
                     portfolio_collection.insert
                     historical_data = get_historical_data(ticker, data_client)
