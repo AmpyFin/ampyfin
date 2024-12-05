@@ -1,3 +1,5 @@
 config.py
 *.log
 .env
+.vscode/
+**/__pycache__/
