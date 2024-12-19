@@ -18,6 +18,11 @@ def simulate_strategy(strategy, ticker, current_price, historical_data, account_
       return 'buy', min(int(max_investment // current_price), int(account_cash // current_price))
    elif action == 'Sell' and portfolio_qty > 0:
       return 'sell', min(portfolio_qty, max(1, int(portfolio_qty * 0.5)))
+   elif action =='Sell':
+      return 'hold', 1
+      """
+      basically a hold if we dont have any stock to sell but this indicates the indicator wants to sell
+      """
    else:
       return 'hold', 0
 
