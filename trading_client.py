@@ -194,7 +194,7 @@ def main():
                     if decision == "buy" and float(account.cash) > 15000 and (((quantity + portfolio_qty) * current_price) / portfolio_value) < 0.1:
                         
                         heapq.heappush(buy_heap, (-(buy_weight-(sell_weight + (hold_weight * 0.5))), quantity, ticker))
-                    elif decision == "sell" and portfolio_qty > 0:
+                    elif (decision == "sell" or sell_weight > buy_weight) and portfolio_qty > 0:
                         print(f"Executing SELL order for {ticker}")
                         
                         
@@ -209,7 +209,6 @@ def main():
                 except Exception as e:
                     logging.error(f"Error processing {ticker}: {e}")
 
-            print(suggestion_heap)
             while (buy_heap or suggestion_heap) and float(account.cash) > 15000:  
                 try:
                     if buy_heap:
