@@ -119,6 +119,9 @@ def main():
             
             buy_heap = []
             suggestion_heap = []
+            """
+            suggestion heap will be given secondary priority but it is to encourage hte program to be less pragmatic - it will buy when it can
+            """
             for ticker in ndaq_tickers:
                 decisions_and_quantities = []
                 try:
