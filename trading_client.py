@@ -170,8 +170,7 @@ def main():
                         decision, quantity = simulate_strategy(strategy, ticker, current_price, historical_data,
                                                       buying_power, portfolio_qty, portfolio_value)
                         weight = strategy_to_coefficient[strategy.__name__]
-                        if decision == 'hold' and quantity == 1:
-                            decision = 'sell'
+                        
                         decisions_and_quantities.append((decision, quantity, weight))
                     decision, quantity, buy_weight, sell_weight, hold_weight = weighted_majority_decision_and_median_quantity(decisions_and_quantities)
                     
