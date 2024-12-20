@@ -31,7 +31,7 @@ def connect_to_mongo(mongo_url):
     return MongoClient(mongo_url)
 
 # Helper to place an order
-def place_order(trading_client, symbol, side, qty, mongo_url):
+def place_order(trading_client, symbol, side, quantity, mongo_url):
     """
     Place a market order and log the order to MongoDB.
 
@@ -42,14 +42,15 @@ def place_order(trading_client, symbol, side, qty, mongo_url):
     :param mongo_url: MongoDB connection URL
     :return: Order result from Alpaca API
     """
+    
     market_order_data = MarketOrderRequest(
         symbol=symbol,
-        qty=qty,
+        qty=quantity,
         side=side,
         time_in_force=TimeInForce.DAY
     )
     order = trading_client.submit_order(market_order_data)
-    qty = round(qty, 3)
+    qty = round(quantity, 3)
     # Log trade details to MongoDB
     mongo_client = connect_to_mongo(mongo_url)
     db = mongo_client.trades

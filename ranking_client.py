@@ -305,8 +305,11 @@ def update_ranks(client):
       strategy_name = strategy_doc["strategy"]
       if strategy_name == "test" or strategy_name == "test_strategy":
          continue
-
-      heapq.heappush(q, (points_collection.find_one({"strategy": strategy_name})["total_points"]/10 + (strategy_doc["portfolio_value"]), strategy_doc["successful_trades"] - strategy_doc["failed_trades"], strategy_doc["amount_cash"], strategy_doc["strategy"]))
+      if points_collection.find_one({"strategy": strategy_name})["total_points"] > 0:
+         
+         heapq.heappush(q, (points_collection.find_one({"strategy": strategy_name})["total_points"] * 2 + (strategy_doc["portfolio_value"]), strategy_doc["successful_trades"] - strategy_doc["failed_trades"], strategy_doc["amount_cash"], strategy_doc["strategy"]))
+      else:
+         heapq.heappush(q, (strategy_doc["portfolio_value"], strategy_doc["successful_trades"] - strategy_doc["failed_trades"], strategy_doc["amount_cash"], strategy_doc["strategy"]))
    rank = 1
    while q:
       
@@ -327,7 +330,6 @@ def main():
    while True: 
       mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
       status = mongo_client.market_data.market_status.find_one({})["market_status"]
-      
       
       if status == "open":  
          

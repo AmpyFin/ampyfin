@@ -99,7 +99,6 @@ def main():
         
         market_collection.update_one({}, {"$set": {"market_status": status}})
         
-        
         if status == "open":
             
             if not ndaq_tickers:
@@ -175,6 +174,7 @@ def main():
                             decision = 'sell'
                         decisions_and_quantities.append((decision, quantity, weight))
                     decision, quantity, buy_weight, sell_weight, hold_weight = weighted_majority_decision_and_median_quantity(decisions_and_quantities)
+                    
                     print(f"Ticker: {ticker}, Decision: {decision}, Quantity: {quantity}, Weights: Buy: {buy_weight}, Sell: {sell_weight}, Hold: {hold_weight}")
                     """
                     later we should implement buying_power regulator depending on vix strategy
@@ -182,14 +182,14 @@ def main():
                     for bear: 5000
                     """
                     
-                    if buy_weight > sell_weight and float(account.cash) > 15000 and (((quantity + portfolio_qty) * current_price) / portfolio_value) < 0.1:
+                    if decision == "buy" and float(account.cash) > 15000 and (((quantity + portfolio_qty) * current_price) / portfolio_value) < 0.1:
                         
                         heapq.heappush(buy_heap, (-(buy_weight-(sell_weight + (hold_weight * 0.5))), quantity, ticker))
-                    elif sell_weight > buy_weight and portfolio_qty > 0:
+                    elif decision == "sell" and portfolio_qty > 0:
                         print(f"Executing SELL order for {ticker}")
                         
                         
-                        order = place_order(trading_client, ticker, OrderSide.SELL, qty=quantity, mongo_url=mongo_url)  # Place order using helper
+                        order = place_order(trading_client, symbol=ticker, side=OrderSide.SELL, quantity=quantity, mongo_url=mongo_url)  # Place order using helper
                         
                         logging.info(f"Executed SELL order for {ticker}: {order}")
                         
@@ -206,7 +206,7 @@ def main():
                     buy_coeff, quantity, ticker = heapq.heappop(buy_heap)
                     print(f"Executing BUY order for {ticker}")
                     
-                    order = place_order(trading_client, ticker, OrderSide.BUY, qty=quantity, mongo_url=mongo_url)  # Place order using helper
+                    order = place_order(trading_client, symbol=ticker, side=OrderSide.BUY, qty=quantity, mongo_url=mongo_url)  # Place order using helper
                     
                     logging.info(f"Executed BUY order for {ticker}: {order}")
                     
