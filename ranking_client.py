@@ -330,8 +330,9 @@ def main():
       
       
       if status == "open":  
-         logging.info("Market is open. Processing strategies.")  
+         
          if not ndaq_tickers:
+            logging.info("Market is open. Processing strategies.")  
             ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)
 
          threads = []
@@ -357,7 +358,7 @@ def main():
                ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)  
                early_hour_first_iteration = False  
                post_market_hour_first_iteration = True
-            logging.info("Market is in early hours. Waiting for 60 seconds.")  
+               logging.info("Market is in early hours. Waiting for 60 seconds.")  
             time.sleep(60)  
   
       elif status == "closed":  
@@ -375,7 +376,6 @@ def main():
             #Update ranks
             update_portfolio_values(mongo_client)
             update_ranks(mongo_client)
-        logging.info("Market is closed. Waiting for 60 seconds.")
         time.sleep(60)  
       else:  
         logging.error("An error occurred while checking market status.")  

@@ -101,8 +101,9 @@ def main():
         
         
         if status == "open":
-            logging.info("Market is open. Waiting for 60 seconds.")
+            
             if not ndaq_tickers:
+                logging.info("Market is open. Waiting for 60 seconds.")
                 ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)  # Fetch tickers using the helper function
                 sim_db = mongo_client.trading_simulator
                 rank_collection = sim_db.rank
@@ -233,7 +234,7 @@ def main():
                     strategy_to_coefficient[strategy.__name__] = coefficient
                     early_hour_first_iteration = False
                     post_hour_first_iteration = True
-            logging.info("Market is in early hours. Waiting for 60 seconds.")
+                logging.info("Market is in early hours. Waiting for 60 seconds.")
             time.sleep(30)
 
         elif status == "closed":
@@ -241,7 +242,7 @@ def main():
             if post_hour_first_iteration:
                 early_hour_first_iteration = True
                 post_hour_first_iteration = False
-            logging.info("Market is closed. Performing post-market operations.")
+                logging.info("Market is closed. Performing post-market operations.")
             time.sleep(30)
             
         else:
