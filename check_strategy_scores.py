@@ -1,7 +1,3 @@
-import sys
-import os
-ampyfin_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'AmpyFin'))
-sys.path.append(ampyfin_path)
 import logging
 from pymongo import MongoClient
 from config import mongo_url

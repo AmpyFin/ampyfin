@@ -1,7 +1,3 @@
-import sys
-import os
-ampyfin_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'AmpyFin'))
-sys.path.append(ampyfin_path)
 from alpaca.trading.client import TradingClient
 from config import API_KEY, API_SECRET
 import logging
