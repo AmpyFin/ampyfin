@@ -2,7 +2,6 @@ from alpaca.trading.client import TradingClient
 from config import API_KEY, API_SECRET
 import logging
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -10,18 +9,15 @@ logging.basicConfig(
 )
 
 def sell_all_positions():
-    # Initialize trading client
     trading_client = TradingClient(API_KEY, API_SECRET)
     
     try:
-        # Get all open positions
         positions = trading_client.get_all_positions()
         
         if not positions:
             logging.info("No open positions found.")
             return
-        
-        # Close each position
+
         for position in positions:
             try:
                 logging.info(f"Closing position for {position.symbol} (Quantity: {position.qty})")

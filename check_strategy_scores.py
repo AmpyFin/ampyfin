@@ -3,7 +3,6 @@ from pymongo import MongoClient
 from config import mongo_url
 from datetime import datetime
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -12,22 +11,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 try:
-    # Connect to MongoDB
     logger.info("Connecting to MongoDB...")
     client = MongoClient(mongo_url)
     db = client.trading_simulator
 
-    # Get points tally
     logger.info("Fetching points tally...")
     points_collection = db.points_tally
     points_data = list(points_collection.find())
 
-    # Get algorithm holdings
     logger.info("Fetching algorithm holdings...")
     holdings_collection = db.algorithm_holdings
     holdings_data = list(holdings_collection.find())
 
-    # Get rankings
     logger.info("Fetching rankings...")
     rank_collection = db.rank
     rank_data = list(rank_collection.find())
@@ -39,15 +34,12 @@ try:
         print(f"{strategy['strategy']:<40} {strategy['total_points']:>10.2f} points  (Updated: {last_updated})")
 
 
-
     print("\nStrategy Rankings:")
     print("-" * 80)
-    # Sort by total_points in descending order for proper ranking
     sorted_strategies = sorted(points_data, key=lambda x: x['total_points'], reverse=True)
     for i, strategy in enumerate(sorted_strategies, 1):
         print(f"Rank {i}: {strategy['strategy']}")
 
-    # Calculate and print summary statistics
     print("\nSummary Statistics:")
     print("-" * 80)
     total_portfolio_value = sum(s.get('portfolio_value', 0) for s in holdings_data)
