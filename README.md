@@ -99,7 +99,7 @@ This ensures that strategies with better recent performance have a greater influ
 ### 💡 utils/*
 
 **Objective**: Contains utility functions for data processing and analysis as well as other miscellaneous functions. These functions are not necessarily being used currently in trading or ranking but stored for development purposes.
-**Features**::
+**Features**:
 
 - **check_strategy_scores.py**: Checks the scores of the strategies and prints them out.
 - **sell_all.py**: Sells all the stocks in the portfolio.
