@@ -88,6 +88,7 @@ def main():
     asset_collection = db.assets_quantities
     strategy_to_coefficient = {}
     while True:
+        
         client = RESTClient(api_key=POLYGON_API_KEY)
         trading_client = TradingClient(API_KEY, API_SECRET)
         data_client = StockHistoricalDataClient(API_KEY, API_SECRET)

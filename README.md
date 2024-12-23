@@ -75,7 +75,7 @@ This ensures that strategies with better recent performance have a greater influ
 **Features**:
 
 - Downloads NASDAQ-100 tickers and stores them in MongoDB.
-- Updates algorithm scores and rankings every 30 seconds (adjustable based on user).
+- Updates algorithm scores and rankings every 120 seconds (adjustable based on user).
 
 ### 📜 strategies/*
 
@@ -86,7 +86,7 @@ This ensures that strategies with better recent performance have a greater influ
 - **trading_strategies_v1.py**: Archived first iteration of AmpyFin used 5 strategies. This file is not supported anymore but is a great reference material
 - **trading_strategies_v2.py**:  Archived second gen older strategies being used in the ranking system. Contains 50 strategies with a lot leaning towards momentum.
 - **trading_strategies_v2_1.py**: Archived second gen older strategies that complements the older strategies in trading_strategies_v2.py. Houses 10 more strategies. This is where newer strategies will be implemented until it caps at 50 strategies as well.
-- **talib_indicators.py**: Contains all the technical indicators used in the strategies. To visit the documentation for each technical indicator, please visit the following link: [Link to TA](https://ta-lib.org/). These indicators were not developed by me, but I have modified their use to fit the needs of AmpyFin.
+- **talib_indicators.py**: Contains all the technical indicators used in the strategies. To visit the documentation for each technical indicator, please visit the following link: [Link to TA](https://ta-lib.org/). These indicators were not developed by me, but I have modified their use to fit the needs of AmpyFin. Each indicator is fine tuned with a specific period and historical data is either retrieved from MongoDB cache system or from yfinance.
 
 ### 🔧 helper_files/*
 
@@ -96,6 +96,14 @@ This ensures that strategies with better recent performance have a greater influ
 
 - **client_helper.py**: Contains common functions for client operations in both ranking and trading.
 
+### 💡 utils/*
+
+**Objective**: Contains utility functions for data processing and analysis as well as other miscellaneous functions. These functions are not necessarily being used currently in trading or ranking but stored for development purposes.
+**Features**::
+
+- **check_strategy_scores.py**: Checks the scores of the strategies and prints them out.
+- **sell_all.py**: Sells all the stocks in the portfolio.
+- **sync_alpaca.py**: Syncs the Alpaca account with the MongoDB account.
 
 ## ⚙️ Installation
 
