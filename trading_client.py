@@ -182,7 +182,7 @@ def main():
                         
                     decision, quantity, buy_weight, sell_weight, hold_weight = weighted_majority_decision_and_median_quantity(decisions_and_quantities)
                     
-                    if portfolio_qty == 0.0 and buy_weight > sell_weight:
+                    if portfolio_qty == 0.0 and buy_weight > sell_weight and (((quantity + portfolio_qty) * current_price) / portfolio_value) < 0.1:
                         print(f"Suggestions for buying for {ticker} with a weight of {buy_weight}")
                         max_investment = portfolio_value * 0.10
                         buy_quantity = min(int(max_investment // current_price), int(buying_power // current_price))
@@ -203,7 +203,7 @@ def main():
                         print(f"Executing SELL order for {ticker}")
                         
                         print(f"Executing quantity of {quantity} for {ticker}")
-                        quantity = min(quantity, 1)
+                        quantity = max(quantity, 1)
                         order = place_order(trading_client, symbol=ticker, side=OrderSide.SELL, quantity=quantity, mongo_client=mongo_client)  # Place order using helper
                         
                         logging.info(f"Executed SELL order for {ticker}: {order}")

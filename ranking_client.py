@@ -361,8 +361,8 @@ def main():
          
          
 
-         logging.info("Finished processing all strategies. Waiting for 60 seconds.")
-         time.sleep(60)  
+         logging.info("Finished processing all strategies. Waiting for 120 seconds.")
+         time.sleep(120)  
       
       elif status == "early_hours":  
             if early_hour_first_iteration is True:  
