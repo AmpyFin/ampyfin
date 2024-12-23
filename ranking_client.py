@@ -325,6 +325,8 @@ def update_ranks(client):
    db = client.HistoricalDatabase
    collection = db.HistoricalDatabase
    collection.delete_many({})
+   print("Successfully updated ranks")
+   print("Successfully deleted historical database")
    
 def main():  
    """  
