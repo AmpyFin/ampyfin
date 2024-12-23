@@ -66,23 +66,25 @@ def process_ticker(ticker, mongo_client):
    try:
       
       current_price = None
-      historical_data = None
+      
       while current_price is None:
          try:
             current_price = get_latest_price(ticker)
          except Exception as fetch_error:
             logging.warning(f"Error fetching price for {ticker}. Retrying... {fetch_error}")
             time.sleep(10)
-      while historical_data is None:
-         try:
-            
-            historical_data = get_data(ticker)
-         except Exception as fetch_error:
-            logging.warning(f"Error fetching historical data for {ticker}. Retrying... {fetch_error}")
-            time.sleep(10)
-
+      
+      indicator_tb = mongo_client.IndicatorsDatabase
+      indicator_collection = indicator_tb.Indicators
       for strategy in strategies:
-            
+         historical_data = None
+         while historical_data is None:
+            try:
+               period = indicator_collection.find_one({'indicator': strategy.__name__})
+               historical_data = get_data(ticker, mongo_client, period['ideal_period'])
+            except Exception as fetch_error:
+               logging.warning(f"Error fetching historical data for {ticker}. Retrying... {fetch_error}")
+               time.sleep(60)
          db = mongo_client.trading_simulator  
          holdings_collection = db.algorithm_holdings
          print(f"Processing {strategy.__name__} for {ticker}")
@@ -317,7 +319,13 @@ def update_ranks(client):
       rank_collection.insert_one({"strategy": strategy_name, "rank": rank})
       rank+=1
    
-
+   """
+   Delete historical database so new one can be used tomorrow
+   """
+   db = client.HistoricalDatabase
+   collection = db.HistoricalDatabase
+   collection.delete_many({})
+   
 def main():  
    """  
    Main function to control the workflow based on the market's status.  
@@ -335,7 +343,7 @@ def main():
          
          if not ndaq_tickers:
             logging.info("Market is open. Processing strategies.")  
-            ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)
+            ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
 
          threads = []
 
@@ -357,7 +365,7 @@ def main():
       elif status == "early_hours":  
             if early_hour_first_iteration is True:  
                
-               ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)  
+               ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)  
                early_hour_first_iteration = False  
                post_market_hour_first_iteration = True
                logging.info("Market is in early hours. Waiting for 60 seconds.")  

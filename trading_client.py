@@ -96,6 +96,8 @@ def main():
         asset_collection = db.assets_quantities
         market_db = mongo_client.market_data
         market_collection = market_db.market_status
+        indicator_tb = mongo_client.IndicatorsDatabase
+        indicator_collection = indicator_tb.Indicators
         
         market_collection.update_one({}, {"$set": {"market_status": status}})
         
@@ -103,7 +105,7 @@ def main():
             
             if not ndaq_tickers:
                 logging.info("Market is open. Waiting for 60 seconds.")
-                ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)  # Fetch tickers using the helper function
+                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)  # Fetch tickers using the helper function
                 sim_db = mongo_client.trading_simulator
                 rank_collection = sim_db.rank
                 r_t_c_collection = sim_db.rank_to_coefficient
@@ -132,7 +134,7 @@ def main():
                     buying_power = float(account.cash)
                     portfolio_value = float(account.portfolio_value)
                     cash_to_portfolio_ratio = buying_power / portfolio_value
-                    mongo_client = MongoClient(mongo_url)
+                    
                     trades_db = mongo_client.trades
                     portfolio_collection = trades_db.portfolio_values
                     
@@ -143,15 +145,6 @@ def main():
                     portfolio_collection.update_one({"name" : "portfolio_percentage"}, {"$set": {"portfolio_value": (portfolio_value-50000)/50000}})
                     portfolio_collection.update_one({"name" : "ndaq_percentage"}, {"$set": {"portfolio_value": (qqq_latest-503.17)/503.17}})
                     portfolio_collection.update_one({"name" : "spy_percentage"}, {"$set": {"portfolio_value": (spy_latest-590.50)/590.50}})
-                    
-                    historical_data = None
-                    while historical_data is None:
-                        try:
-                            
-
-                            historical_data = get_data(ticker)
-                        except:
-                            print(f"Error fetching data for {ticker}. Retrying...")
                     
                     
                     current_price = None
@@ -170,6 +163,16 @@ def main():
                     use weight from each strategy to determine how much each decision will be weighed. weights will be in decimal
                     """
                     for strategy in strategies:
+                        historical_data = None
+                        while historical_data is None:
+                            try:
+                                
+                                
+                                period = indicator_collection.find_one({'indicator': strategy.__name__})
+                                
+                                historical_data = get_data(ticker, mongo_client, period['ideal_period'])
+                            except:
+                                print(f"Error fetching data for {ticker}. Retrying...")
                         
                         decision, quantity = simulate_strategy(strategy, ticker, current_price, historical_data,
                                                       buying_power, portfolio_qty, portfolio_value)
@@ -198,7 +201,7 @@ def main():
                         print(f"Executing SELL order for {ticker}")
                         
                         
-                        order = place_order(trading_client, symbol=ticker, side=OrderSide.SELL, quantity=quantity, mongo_url=mongo_url)  # Place order using helper
+                        order = place_order(trading_client, symbol=ticker, side=OrderSide.SELL, quantity=quantity, mongo_client=mongo_client)  # Place order using helper
                         
                         logging.info(f"Executed SELL order for {ticker}: {order}")
                         
@@ -215,7 +218,7 @@ def main():
                         _, quantity, ticker = heapq.heappop(buy_heap)
                         print(f"Executing BUY order for {ticker}")
                         
-                        order = place_order(trading_client, symbol=ticker, side=OrderSide.BUY, quantity=quantity, mongo_url=mongo_url)  # Place order using helper
+                        order = place_order(trading_client, symbol=ticker, side=OrderSide.BUY, quantity=quantity, mongo_client=mongo_client)  # Place order using helper
                         
                         logging.info(f"Executed BUY order for {ticker}: {order}")
                         
@@ -225,7 +228,7 @@ def main():
                         _, quantity, ticker = heapq.heappop(suggestion_heap)
                         print(f"Executing BUY order for {ticker}")
 
-                        order = place_order(trading_client, symbol=ticker, side=OrderSide.BUY, quantity=quantity, mongo_url=mongo_url)  # Place order using helper
+                        order = place_order(trading_client, symbol=ticker, side=OrderSide.BUY, quantity=quantity, mongo_client=mongo_client)  # Place order using helper
 
                         logging.info(f"Executed BUY order for {ticker}: {order}")
 
@@ -243,7 +246,7 @@ def main():
 
         elif status == "early_hours":
             if early_hour_first_iteration:
-                ndaq_tickers = get_ndaq_tickers(mongo_url, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
                 sim_db = mongo_client.trading_simulator
                 rank_collection = sim_db.rank
                 r_t_c_collection = sim_db.rank_to_coefficient
