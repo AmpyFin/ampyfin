@@ -18,7 +18,7 @@ def get_data(ticker, mongo_client, period='1y'):
             df = pd.DataFrame(data['data'])
             df['Date'] = pd.to_datetime(df['Date'])
             df.set_index('Date', inplace=True)
-            print("Data fetched from MongoDB")
+            
             return df
          else:
 

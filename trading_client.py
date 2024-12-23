@@ -181,12 +181,14 @@ def main():
                         decisions_and_quantities.append((decision, quantity, weight))
                         
                     decision, quantity, buy_weight, sell_weight, hold_weight = weighted_majority_decision_and_median_quantity(decisions_and_quantities)
+                    
                     if portfolio_qty == 0.0 and buy_weight > sell_weight:
+                        print(f"Suggestions for buying for {ticker} with a weight of {buy_weight}")
                         max_investment = portfolio_value * 0.10
-                        quantity = min(int(max_investment // current_price), int(buying_power // current_price))
+                        buy_quantity = min(int(max_investment // current_price), int(buying_power // current_price))
                         
 
-                        heapq.heappush(suggestion_heap, (-buy_weight, quantity, ticker))
+                        heapq.heappush(suggestion_heap, (-buy_weight, buy_quantity, ticker))
                     print(f"Ticker: {ticker}, Decision: {decision}, Quantity: {quantity}, Weights: Buy: {buy_weight}, Sell: {sell_weight}, Hold: {hold_weight}")
                     """
                     later we should implement buying_power regulator depending on vix strategy
@@ -197,10 +199,11 @@ def main():
                     if decision == "buy" and float(account.cash) > 15000 and (((quantity + portfolio_qty) * current_price) / portfolio_value) < 0.1:
                         
                         heapq.heappush(buy_heap, (-(buy_weight-(sell_weight + (hold_weight * 0.5))), quantity, ticker))
-                    elif (decision == "sell" or sell_weight > buy_weight) and portfolio_qty > 0:
+                    elif (decision == "sell") and portfolio_qty > 0:
                         print(f"Executing SELL order for {ticker}")
                         
-                        
+                        print(f"Executing quantity of {quantity} for {ticker}")
+                        quantity = min(quantity, 1)
                         order = place_order(trading_client, symbol=ticker, side=OrderSide.SELL, quantity=quantity, mongo_client=mongo_client)  # Place order using helper
                         
                         logging.info(f"Executed SELL order for {ticker}: {order}")
@@ -222,8 +225,7 @@ def main():
                         
                         logging.info(f"Executed BUY order for {ticker}: {order}")
                         
-                        trading_client = TradingClient(API_KEY, API_SECRET)
-                        account = trading_client.get_account()
+                        
                     elif suggestion_heap:
                         _, quantity, ticker = heapq.heappop(suggestion_heap)
                         print(f"Executing BUY order for {ticker}")
@@ -232,8 +234,8 @@ def main():
 
                         logging.info(f"Executed BUY order for {ticker}: {order}")
 
-                        trading_client = TradingClient(API_KEY, API_SECRET)
-                        account = trading_client.get_account()
+                    trading_client = TradingClient(API_KEY, API_SECRET)
+                    account = trading_client.get_account()
                     
                     
                 except:
