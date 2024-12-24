@@ -43,7 +43,7 @@ $$
 \left( \frac{e^e}{e^2} - 1 \right)^{2i}
 $$
 
-Where \(i\) is the strategy's rank. Please keep in mind that the strategy's rank 
+Where \(i\) is the strategy's rank. Please keep in mind that the strategy's rank is inverse of its performance. So a strategy ranked 132 is actually performing the best while strategy ranked 1 is performing the worst currently.
 
 #### ⏳ Time Delta Coefficient
 
