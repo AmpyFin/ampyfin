@@ -1,5 +1,9 @@
 from polygon import RESTClient
-from config import POLYGON_API_KEY, FINANCIAL_PREP_API_KEY, MONGO_DB_USER, MONGO_DB_PASS, API_KEY, API_SECRET, BASE_URL, mongo_url
+from tqdm import tqdm
+
+from config import POLYGON_API_KEY, FINANCIAL_PREP_API_KEY, MONGO_DB_USER, MONGO_DB_PASS, API_KEY, API_SECRET, BASE_URL, \
+    mongo_url
+from train.train_config import Config
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from urllib.request import urlopen
@@ -66,16 +70,19 @@ def process_ticker(ticker, mongo_client,stock_client):
    try:
       
       current_price = None
-      
+      historical_data = None
       while current_price is None:
          try:
             current_price = get_latest_price(ticker,stock_client)
+            if Config.TRAINING and current_price is None:
+                logging.info(
+                    f"Skipping processing of {ticker} due to missing data for {Config.CURRENT_TRAINING_TIMESTAMP}.")
+                return
          except Exception as fetch_error:
             logging.warning(f"Error fetching price for {ticker}. Retrying... {fetch_error}")
             time.sleep(10)
       while historical_data is None:
          try:
-            
             historical_data = get_data(ticker)
          except Exception as fetch_error:
             logging.warning(f"Error fetching historical data for {ticker}. Retrying... {fetch_error}")
@@ -267,7 +274,7 @@ def update_portfolio_values(client):
           # Get the current price of the ticker from the Polygon API
           # Use a cache system to store the latest prices
           # If the cache is empty, fetch the latest price from the Polygon API
-          # Cache should be updated every 60 seconds 
+          # Cache should be updated every 60 seconds
 
           current_price = None
           while current_price is None:
@@ -303,8 +310,6 @@ def update_ranks(client):
    """
    rank_collection.delete_many({})
    """
-   Reason why delete rank is so that rank is intially null and
-   then we can populate it in the order we wish
    now update rank based on successful_trades - failed
    """
    q = []
@@ -316,7 +321,7 @@ def update_ranks(client):
       if strategy_name == "test" or strategy_name == "test_strategy":
          continue
       if points_collection.find_one({"strategy": strategy_name})["total_points"] > 0:
-         
+
          heapq.heappush(q, (points_collection.find_one({"strategy": strategy_name})["total_points"] * 2 + (strategy_doc["portfolio_value"]), strategy_doc["successful_trades"] - strategy_doc["failed_trades"], strategy_doc["amount_cash"], strategy_doc["strategy"]))
       else:
          heapq.heappush(q, (strategy_doc["portfolio_value"], strategy_doc["successful_trades"] - strategy_doc["failed_trades"], strategy_doc["amount_cash"], strategy_doc["strategy"]))
@@ -335,30 +340,31 @@ def update_ranks(client):
    collection.delete_many({})
    print("Successfully updated ranks")
    print("Successfully deleted historical database")
-   
+
 def main():  
    """  
    Main function to control the workflow based on the market's status.  
-   """  
-   ndaq_tickers = []  
+   """
+
+   ndaq_tickers = []
    early_hour_first_iteration = True
    post_market_hour_first_iteration = True
-   
-   
-   while True: 
-      mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
+
+   while True:
+      mongo_client = MongoClient(mongo_url)
       stock_client=StockHistoricalDataClient(api_key=API_KEY,secret_key=API_SECRET)
       status = mongo_client.market_data.market_status.find_one({})["market_status"]
+
       
-      
-      if status == "open":  
+      if status == "open":
          # Connection pool is not thread safe. Create a new client for each thread.
          # We can use ThreadPoolExecutor to manage threads - maybe use this but this risks clogging
          # resources if we have too many threads or if a thread is on stall mode
          # We can also use multiprocessing.Pool to manage threads
-         
+
+         t1 = time.perf_counter()
          if not ndaq_tickers:
-            logging.info("Market is open. Processing strategies.")  
+            logging.info("Market is open. Processing strategies.")
             ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
 
          threads = []
@@ -376,19 +382,33 @@ def main():
          
 
          logging.info("Finished processing all strategies. Waiting for 120 seconds.")
-         time.sleep(120)  
+         if Config.TRAINING:
+             Config.CURRENT_TRAINING_TIMESTAMP = Config.CURRENT_TRAINING_TIMESTAMP + timedelta(minutes=1)
+             if not Config.is_stock_exchange_open(Config.CURRENT_TRAINING_TIMESTAMP):
+                 if Config.CURRENT_TRAINING_TIMESTAMP.time() >= Config.STOCK_EXCHANGE_CLOSING_TIMESTAMP:
+                     mongo_client.market_data.market_status.update_one({}, {"$set": {"market_status": "closed"}})
+             t2 = time.perf_counter()
+             print(f"Last 1 Minute Simulation took: {t2 - t1:.2f} seconds")
+             logging.info("Skipping wait time in training mode")
+         else:
+             time.sleep(120)
       
-      elif status == "early_hours":  
+      elif status == "early_hours":
             # During early hour, currently we only support prep
             # However, we should add more features here like premarket analysis
-            
+
             if early_hour_first_iteration is True:  
                
-               ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)  
+               ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
                early_hour_first_iteration = False  
                post_market_hour_first_iteration = True
-               logging.info("Market is in early hours. Waiting for 60 seconds.")  
-            time.sleep(60)  
+               logging.info("Market is in early hours. Waiting for 60 seconds.")
+            if Config.TRAINING:
+                Config.CURRENT_TRAINING_TIMESTAMP.replace(hour=Config.STOCK_EXCHANGE_OPENING_TIMESTAMP.hour, minute=Config.STOCK_EXCHANGE_OPENING_TIMESTAMP.minute)
+                mongo_client.market_data.market_status.update_one({}, {"$set": {"market_status": "open"}})
+                logging.info("Skipping early_hours in training mode")
+            else:
+                time.sleep(60)
   
       elif status == "closed":  
         # Performs post-market analysis for next trading day
@@ -409,10 +429,28 @@ def main():
             # We keep reusing the same mongo client and never close to reduce the number within the connection pool
 
             update_ranks(mongo_client)
-        time.sleep(60)  
+        logging.info("Market is closed. Waiting for 60 seconds.")
+        if Config.TRAINING:
+            Config.CURRENT_TRAINING_TIMESTAMP = Config.CURRENT_TRAINING_TIMESTAMP.replace(hour=9,
+                                                                                          minute=0) + timedelta(days=1)
+            # skip weekends
+            while Config.CURRENT_TRAINING_TIMESTAMP.weekday() > 4:
+                Config.CURRENT_TRAINING_TIMESTAMP = Config.CURRENT_TRAINING_TIMESTAMP + timedelta(days=1)
+            mongo_client.market_data.market_status.update_one({}, {"$set": {"market_status": "early_hours"}})
+            logging.info("Skipping waiting in training mode")
+        else:
+            time.sleep(60)
       else:  
         logging.error("An error occurred while checking market status.")  
         time.sleep(60)
+      if Config.TRAINING:
+          logging.info(f"Training Progress: CurrentTrainingTimestamp: {Config.CURRENT_TRAINING_TIMESTAMP} --> TrainingEndTimestamp: {Config.TRAINING_END_TIMESTAMP}")
+          if Config.CURRENT_TRAINING_TIMESTAMP > Config.TRAINING_END_TIMESTAMP:
+              logging.info("Training Finished...")
+              if Config.CONTINUE_LIVE_MODE_AFTER_TRAINING:
+                  Config.TRAINING = False
+              else:
+                break
       mongo_client.close()
    
   

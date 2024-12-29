@@ -15,4 +15,5 @@ PyWavelets
 ripser
 datetime
 TA-Lib
+tqdm
 pandas-ta

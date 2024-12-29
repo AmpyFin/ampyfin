@@ -1,4 +1,4 @@
-from config import API_KEY, API_SECRET, POLYGON_API_KEY, RANK_POLYGON_API_KEY, MONGO_DB_USER, MONGO_DB_PASS, mongo_url
+from config import API_KEY, API_SECRET, POLYGON_API_KEY, MONGO_DB_USER, MONGO_DB_PASS, mongo_url
 from helper_files.client_helper import strategies
 from pymongo import MongoClient
 from datetime import datetime
@@ -10,7 +10,7 @@ from alpaca.data.historical.stock import StockHistoricalDataClient
 
 def insert_rank_to_coefficient(i):
    try:
-      client = MongoClient(mongo_url)  
+      client = MongoClient(mongo_url)
       db = client.trading_simulator 
       collections  = db.rank_to_coefficient
       """

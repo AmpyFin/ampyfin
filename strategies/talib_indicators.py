@@ -1,15 +1,26 @@
-import yfinance as yf  
+from datetime import timedelta
+
+import yfinance as yf
 import talib as ta 
 import numpy as np
+import pandas as pd
 
-def get_data(ticker, period='1y'): 
+from train.train_config import Config
 
-   """Retrieve historical data for a given ticker."""  
-   
-   ticker = yf.Ticker(ticker)
-   data = ticker.history(period=period)
-   return data  
-  
+
+def get_data(ticker, period='1y'):
+   """Retrieve historical data for a given ticker."""
+
+   if Config.TRAINING:
+      filename = f"./data/historical/historical_{ticker}_day.csv"
+      df = pd.read_csv(filename, index_col=['symbol', 'timestamp'])
+      last_day_timestamp = (Config.CURRENT_TRAINING_TIMESTAMP - timedelta(days=1)).replace(hour=5, minute=0, second=0)
+      data = df.loc[:(ticker, last_day_timestamp.isoformat(sep=" ", timespec="seconds"))]
+   else:
+      ticker = yf.Ticker(ticker)
+      data = ticker.history(period=period)
+   return data
+
 def simulate_strategy(strategy, ticker, current_price, historical_data, account_cash, portfolio_qty, total_portfolio_value):
    max_investment = total_portfolio_value * 0.10
    action = strategy(ticker, historical_data)

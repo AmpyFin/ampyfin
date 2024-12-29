@@ -1,5 +1,10 @@
 config.py
 *.log
 .env
+.venv
+*.DS_Store
 .vscode/
+.idea/
 **/__pycache__/
+
+train/data

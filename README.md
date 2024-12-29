@@ -163,8 +163,52 @@ pip install -r requirements.txt
 - Run the setup script `setup.py`:
 - After running the mongo setup script, the MongoDB setup for the rest will be completed on the first minute in trading for both ranking and trading.
 
-## ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) Setup with Docker Container (Optional)
+## Training
 
+To get some meaningfull trades the weights of the different trading strategies need to the trained.
+There are multiple options to do this.
+
+### 1. Live Training
+   First and easiest option would be to run the ranking client on live data for several days/weeks (min. 2 weeks is recommended)
+
+### 2. Historical Data
+
+   Use historical data to train the ranking client.
+      
+   For this approach checkout the 'train' directory and adjust the ./train/train_config.py
+   By default the ranking_client is trained with 25 days of historical data.
+   
+   To train the ranking client simply run the train_ranking_client.py script
+   - The script will first download historical data and save it as csv
+   - It will then run the training based on the downloaded data
+   
+#### 2.1 Docker
+   
+You can also use docker to run the training.
+
+`docker-compose up training_client`
+
+#### 2.2 Offline
+
+The training script is design to also work offline if you have some preloaded data available.
+You can get some data by simply running train_ranking_client.py and wait until the downloading part is done. The data will be available under ./train/data
+##### 2.2.1 Local Python
+You can run the train_rankin_client.py in your lokal python environment but you need to have a offline mongodb instance. This can be done via docker:
+- You can create a local mongodb instance by running
+
+   `docker-compose up --profile offline`
+   This will launch mongodb and also mongo-express. A UI tool for mongodb, which can be accessed via localhost:8081
+- To run the training in offline mode you need to modify the `mongo_url` parameter in config.py and set it to `mongodb://admin:password@localhost`
+- launch the training script with the following parameters to use the previously downloaded data: `python -m train.train_ranking_client -s ./train/data/symbols.csv -hist ./train/data/historical`
+
+##### 2.2.1 Full Docker
+It is also possible to run everything offline in docker (also the train_ranking_client.py) by the following steps:
+1. Modify the `mongo_url` parameter in config.py and set it to `mongodb://admin:password@mongodb`
+2. In the ./train/Dockerfile.training file add the following parameters to the python command in the last line: `-s ./train/data/symbols.csv -hist ./train/data/historical`
+3. Run `docker-compose up`
+
+## ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) Setup with Docker Container (Optional)
+🐋
 ### Building and running your application with docker
 
 When you're ready, start your application by running:
