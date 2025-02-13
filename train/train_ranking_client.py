@@ -94,7 +94,6 @@ def main(args):
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerows([symbols])
-    symbols=['AAPL']
     Config.TRAINING_DATA.ticker = symbols
 
 

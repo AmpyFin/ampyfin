@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.data.historical.stock import StockHistoricalDataClient
@@ -171,7 +171,7 @@ def market_status(polygon_client):
 training_data_cache = dict()
 
 # Helper to get latest price
-def get_latest_price(ticker,stock_client:StockHistoricalDataClient):  
+def get_latest_price(ticker, stock_client:StockHistoricalDataClient):
    """  
    Fetch the latest price for a given stock ticker using yfinance.  
   
@@ -237,3 +237,19 @@ def dynamic_period_selector(ticker,stock_client:StockHistoricalDataClient,startd
     optimal_period = min(volatility_scores, key=lambda x: x[1])[0] if volatility_scores else '1y'
     return optimal_period
 
+def get_latest_day_closing_price(ticker):
+    '''
+    For training we use the day closing time.
+    '''
+    if Config.TRAINING:
+        # during training we need to go back to the last training timestamp where we have data
+        data = None
+        start_date = Config.CURRENT_TRAINING_TIMESTAMP
+        while data is None:
+            Config.CURRENT_TRAINING_TIMESTAMP = Config.CURRENT_TRAINING_TIMESTAMP - timedelta(
+                days=1)
+            data = get_data(ticker).iloc[-1]['Close']
+        Config.CURRENT_TRAINING_TIMESTAMP = start_date
+        return data
+    else:
+        raise RuntimeError("This function should only be used in training")
