@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 from alpaca.data.historical.stock import StockHistoricalDataClient
@@ -70,7 +70,7 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
         'qty': qty,
         'side': side.name,
         'time_in_force': TimeInForce.DAY.name,
-        'time': datetime.now()
+        'time': datetime.now(tz=timezone.utc)
     })
 
     # Track assets as well
