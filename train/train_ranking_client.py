@@ -12,7 +12,7 @@ from pymongo import MongoClient
 
 import logging
 
-from config import FINANCIAL_PREP_API_KEY, mongo_url, API_KEY, API_SECRET
+from config import FINANCIAL_PREP_API_KEY, mongo_url, local_mongo_url, API_KEY, API_SECRET
 from train.train_config import Config
 from helper_files.client_helper import get_ndaq_tickers
 
@@ -77,7 +77,7 @@ def main(args):
         args (argparse.Namespace): argparse arguments.
     """
 
-    mongo_client = MongoClient(mongo_url)
+    mongo_client = MongoClient(mongo_url if local_mongo_url is None or local_mongo_url == '' else local_mongo_url)
     stock_client=StockHistoricalDataClient(api_key=API_KEY,secret_key=API_SECRET)
 
     Config.TRAINING = True

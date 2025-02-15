@@ -2,7 +2,8 @@ from polygon import RESTClient
 from tqdm import tqdm
 
 from config import POLYGON_API_KEY, FINANCIAL_PREP_API_KEY, MONGO_DB_USER, MONGO_DB_PASS, API_KEY, API_SECRET, BASE_URL, \
-    mongo_url
+    mongo_url, local_mongo_url
+from helper_files.sync_local_remote_database import sync_mongodb
 from train.train_config import Config
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -354,8 +355,12 @@ def main():
    early_hour_first_iteration = True
    post_market_hour_first_iteration = True
 
+   # Download data from remote to local if local mongoDB is used to not loose data if already present
+   if not (local_mongo_url is None or local_mongo_url == ''):
+       sync_mongodb(mongo_url, local_mongo_url)
+
    while True:
-      mongo_client = MongoClient(mongo_url)
+      mongo_client = MongoClient(mongo_url if local_mongo_url is None or local_mongo_url == '' else local_mongo_url)
       stock_client=StockHistoricalDataClient(api_key=API_KEY,secret_key=API_SECRET)
       status = mongo_client.market_data.market_status.find_one({})["market_status"]
 
@@ -433,6 +438,8 @@ def main():
             # We keep reusing the same mongo client and never close to reduce the number within the connection pool
 
             update_ranks(mongo_client)
+            if not (local_mongo_url is None or local_mongo_url == ''):
+                sync_mongodb(local_mongo_url, mongo_url)
         logging.info("Market is closed. Waiting for 60 seconds.")
         if Config.TRAINING:
             Config.CURRENT_TRAINING_TIMESTAMP = Config.CURRENT_TRAINING_TIMESTAMP.replace(hour=9,

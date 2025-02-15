@@ -140,6 +140,7 @@ pip install -r requirements.txt
     API_SECRET = "your_alpaca_secret_key"
     BASE_URL = "https://paper-api.alpaca.markets"
     mongo_url = "your mongo connection string"
+    local_mongo_url = "" # local mongo db url if this feature is set up
     ```
 
 ### 4️⃣ API Setup
@@ -161,6 +162,15 @@ pip install -r requirements.txt
 - Sign up for a MongoDB cluster (e.g., via MongoDB Atlas).
 - Create a database for stock data storage and replace the `mongo_url` in 'config.py' with your connection string. Make sure to give yourself Network Access.
 - Run the setup script `setup.py`:
+- After running the mongo setup script, the MongoDB setup for the rest will be completed on the first minute in trading for both ranking and trading.
+
+### 6️⃣ Set Up Local MongoDB (Optional)
+
+Running a local copy of MongoDB can drastically improve runtime performance as the expensive operations are the MongoDB updates.
+- To simply run a local MongoDB run the following command `docker-compose --profile offline up mongodb mongo-express ` in the `./train` directory.
+- There is also a simple UI which should be available under localhost:8081
+- Create a database for stock data storage and replace the `local_mongo_url` in 'config.py' with your connection string (e.g. "mongodb://admin:password@localhost").
+- Run the setup script `setup.py` which will setup both local and remote mongodb.
 - After running the mongo setup script, the MongoDB setup for the rest will be completed on the first minute in trading for both ranking and trading.
 
 ## Training
