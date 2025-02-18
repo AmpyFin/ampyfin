@@ -552,11 +552,11 @@ def test():
         time.sleep(5)
     
     """
-    Calculate metrics and generate tear sheet
+    Generate tear sheet
     """
-    metrics = calculate_metrics(account_values)
-    print(metrics)
-    generate_tear_sheet(account_values, metrics)
+    # metrics = calculate_metrics(account_values)
+    # print(metrics)
+    generate_tear_sheet(account_values, 'Strategy_vs_SPY')
 
     """
     print some stats

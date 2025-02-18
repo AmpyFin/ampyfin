@@ -16,3 +16,4 @@ ripser
 datetime
 TA-Lib
 pandas-ta
+quantstats
