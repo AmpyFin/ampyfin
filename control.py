@@ -38,7 +38,7 @@ There will be an option to:
 'push' means pushing your trained bot to the database. This is only available for the ranking client.
 The default for mode is live to protect against accidental training
 """
-mode = 'train'
+mode = 'test'
 
 """
 training parameters - run purely on ranking_client.py
@@ -49,9 +49,9 @@ please keep in mind training takes quite a long time. Our team trained it on a 1
 so please understand the time it takes to train.
 
 """
-period_start = "2003-02-26"
-period_end = "2016-01-01"
-train_tickers = []
+period_start = "2003-04-05"
+period_end = "2003-04-09"
+train_tickers = ['AAPL', 'MSFT']
 
 """
 train_time_delta_mode can be multiplicative, additive, or balanced. Additive results in less overfitting but could result in underfitting as time goes on
