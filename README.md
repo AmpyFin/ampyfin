@@ -80,7 +80,7 @@ This ensures that strategies with better recent performance have a greater influ
 - Downloads NASDAQ-100 tickers and stores them in MongoDB.
 - Updates algorithm scores and rankings every 120 seconds (adjustable based on user).
 
-### 🏋️ TradeSim/training_client.py
+### 🏋️ TradeSim/main.py
 
 **Objective**: Allows users to train a simulator from scratch, test the simulator, and update their simulator from local to database.
 
