@@ -30,7 +30,7 @@ pattern_recognition = [CDL2CROWS_indicator, CDL3BLACKCROWS_indicator, CDL3INSIDE
 statistical_functions = [BETA_indicator, CORREL_indicator, LINEARREG_indicator, LINEARREG_ANGLE_indicator, LINEARREG_INTERCEPT_indicator, LINEARREG_SLOPE_indicator, STDDEV_indicator, TSF_indicator, VAR_indicator]
 
 strategies = overlap_studies + momentum_indicators + volume_indicators + cycle_indicators + price_transforms + volatility_indicators + pattern_recognition + statistical_functions
-
+strategies = [HT_SINE_indicator, WILLR_indicator, LINEARREG_indicator, TSF_indicator]
 # MongoDB connection helper
 def connect_to_mongo(mongo_url):
     """Connect to MongoDB and return the client."""

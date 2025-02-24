@@ -15,24 +15,52 @@ def get_historical_data(ticker, current_date, period, ticker_price_history):
         start_date = period_start_date[period]
         
         return ticker_price_history[ticker].loc[start_date.strftime('%Y-%m-%d'):current_date.strftime('%Y-%m-%d')]
-    
-def local_update_portfolio_values(current_date, strategies, trading_simulator, ticker_price_history):
+
+def local_update_portfolio_values(current_date, strategies, trading_simulator, ticker_price_history, logger):
+    """
+    Updates portfolio values for all strategies and counts active strategies.
+    """
+    logger.info(f"Updating portfolio values for {current_date.strftime('%Y-%m-%d')}.")
+
     active_count = 0
+
     for strategy in strategies:
-        trading_simulator[strategy.__name__]["portfolio_value"] = trading_simulator[strategy.__name__]["amount_cash"]
-        """
-        update portfolio value here
-        """
+        strategy_name = strategy.__name__
+        # logger.info(f"Processing strategy: {strategy_name}.")
+
+        # Reset portfolio value to cash balance
+        trading_simulator[strategy_name]["portfolio_value"] = trading_simulator[strategy_name]["amount_cash"]
+        # logger.info(f"{strategy_name}: Starting portfolio value (cash only): {trading_simulator[strategy_name]['portfolio_value']}")
+
         amount = 0
-        for ticker in trading_simulator[strategy.__name__]["holdings"]:
-            qty = trading_simulator[strategy.__name__]["holdings"][ticker]["quantity"]
-            current_price = ticker_price_history[ticker].loc[current_date.strftime('%Y-%m-%d')]["Close"]
-            amount += qty * current_price
-        cash = trading_simulator[strategy.__name__]["amount_cash"]
-        trading_simulator[strategy.__name__]["portfolio_value"] = amount + cash
-        if trading_simulator[strategy.__name__]["portfolio_value"] != 50000:
+
+        # Update portfolio value based on current holdings
+        for ticker in trading_simulator[strategy_name]["holdings"]:
+            qty = trading_simulator[strategy_name]["holdings"][ticker]["quantity"]
+            if current_date.strftime('%Y-%m-%d') in ticker_price_history[ticker].index:
+                current_price = ticker_price_history[ticker].loc[current_date.strftime('%Y-%m-%d')]["Close"]
+                position_value = qty * current_price
+                amount += position_value
+                # logger.info(f"{strategy_name}: {ticker} - Qty: {qty}, Price: {current_price}, Position Value: {position_value}")
+            else:
+                pass
+                # logger.info(f"{strategy_name}: {ticker} - No price data available for {current_date.strftime('%Y-%m-%d')}, skipping.")
+
+        cash = trading_simulator[strategy_name]["amount_cash"]
+        trading_simulator[strategy_name]["portfolio_value"] = amount + cash
+
+        # logger.info(f"{strategy_name}: Final portfolio value: {trading_simulator[strategy_name]['portfolio_value']}")
+
+        # Count active strategies (i.e., those with a portfolio value different from the initial $50,000)
+        if trading_simulator[strategy_name]["portfolio_value"] != 50000:
             active_count += 1
+            # logger.info(f"{strategy_name}: Strategy is active.")
+
+    # logger.info(f"Total active strategies: {active_count}")
+    logger.info(f"Completed portfolio update for {current_date.strftime('%Y-%m-%d')}.")
+
     return active_count, trading_simulator
+
 
 def calculate_metrics(account_values):
     # Fill non-leading NA values with the previous value using 'ffill' (forward fill)

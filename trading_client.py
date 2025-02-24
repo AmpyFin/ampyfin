@@ -35,16 +35,16 @@ sold = False
 
 ca = certifi.where()
 
-# Set up logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.FileHandler('system.log'),  # Log messages to a file
-        logging.StreamHandler()             # Log messages to the console
-    ]
-)
+# # Set up logging configuration
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s - %(message)s',
+#     datefmt='%Y-%m-%d %H:%M:%S',
+#     handlers=[
+#         logging.FileHandler('system.log'),  # Log messages to a file
+#         logging.StreamHandler()             # Log messages to the console
+#     ]
+# )
 
 def weighted_majority_decision_and_median_quantity(decisions_and_quantities):  
     """  
