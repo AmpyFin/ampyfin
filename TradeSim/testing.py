@@ -277,7 +277,7 @@ def test():
     logger.info("Final metrics calculated.")
     logger.info(metrics)
 
-    generate_tear_sheet(account_values, metrics)
+    generate_tear_sheet(account_values, 'SPY_vs_strategy')
     logger.info("Tear sheet generated.")
 
     # Print final results

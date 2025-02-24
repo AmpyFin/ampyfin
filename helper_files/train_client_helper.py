@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+import quantstats as qs
 
 def get_historical_data(ticker, current_date, period, ticker_price_history):
         period_start_date = {
@@ -98,22 +100,18 @@ def plot_cash_growth(account_values):
     plt.grid(True)
     plt.show()
 
-def generate_tear_sheet(account_values, metrics):
-    account_values = account_values.interpolate(method='linear')  # Fill missing values by linear interpolation
-    fig, ax = plt.subplots(2, 1, figsize=(10, 12))
+def generate_tear_sheet(account_values, filename):
+    # Create 'tearsheets' folder if it doesn't exist
+    if not os.path.exists('tearsheets'):
+        os.makedirs('tearsheets')
+
+    # Fill missing values by linear interpolation
+    account_values = account_values.interpolate(method='linear')  
     
-    # Plot account cash growth
-    ax[0].plot(account_values.index, account_values.values, label='Account Portfolio Value')
-    ax[0].set_xlabel('Date')
-    ax[0].set_ylabel('Account Value')
-    ax[0].set_title('Portfolio Value')
-    ax[0].legend()
-    ax[0].grid(True)
-    
-    # Display metrics
-    metrics_text = '\n'.join([f'{k}: {v:.4f}' for k, v in metrics.items()])
-    ax[1].text(0.5, 0.5, metrics_text, fontsize=12, ha='center', va='center', transform=ax[1].transAxes)
-    ax[1].axis('off')
-    
-    plt.tight_layout()
-    plt.show()
+    # Generate quantstats report
+    qs.reports.html(
+        account_values.pct_change(), 
+        "SPY", 
+        title='Strategy vs SPY', 
+        output=f'tearsheets/{filename}.html'
+    )
