@@ -49,9 +49,9 @@ please keep in mind training takes quite a long time. Our team trained it on a 1
 so please understand the time it takes to train.
 
 """
-period_start = "2003-04-05"
-period_end = "2003-04-09"
-train_tickers = ['AAPL', 'MSFT']
+period_start = "2003-06-30"
+period_end = "2003-07-20"
+train_tickers = ['MSFT', 'AAPL']
 
 """
 train_time_delta_mode can be multiplicative, additive, or balanced. Additive results in less overfitting but could result in underfitting as time goes on
@@ -104,7 +104,7 @@ train_rank_asset_limit to portfolio is how much asset you are allowed to hold in
 The lower this number, the more diversification you will have in your portfolio. The higher the number, 
 the less diversification you will have but it will be buying more selective assets.
 """
-train_rank_asset_limit = 0.1
+train_rank_asset_limit = 0.3
 
 """
 train_profit_price_change_ratio_(d1 - d2) is at what price ratio you should reward each strategy
