@@ -1,16 +1,18 @@
+
+
 from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
 from config import *
-from ..strategies.talib_indicators import simulate_strategy
+from strategies.talib_indicators import simulate_strategy
 from utils import * 
 from trading_client import weighted_majority_decision_and_median_quantity
 import certifi
 from pymongo import MongoClient
-from ..control import *
+from control import *
 import os
 import heapq
 import logging
-from ..helper_files.client_helper import *
-from ..helper_files.train_client_helper import *
+from helper_files.client_helper import *
+from helper_files.train_client_helper import *
 
 results_dir = 'results'
 logs_dir = 'logs'
@@ -128,6 +130,7 @@ def update_strategy_ranks(strategies, points, trading_simulator):
     return rank
 
 def test():
+    global train_tickers
     """
     Runs the testing phase of the trading simulator.
     """
@@ -163,7 +166,8 @@ def test():
     current_date = start_date
     account_values = pd.Series(index=pd.date_range(start=start_date, end=end_date))
     logger.info(f"Testing period: {start_date} to {end_date}")
-
+    if not train_tickers:
+        train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
     while current_date <= end_date:
         logger.info(f"Processing date: {current_date.strftime('%Y-%m-%d')}")
 
@@ -275,6 +279,7 @@ def test():
 
         current_date += timedelta(days=1)
         time.sleep(5)
+    
 
     # Calculate final metrics and generate tear sheet
     metrics = calculate_metrics(account_values)

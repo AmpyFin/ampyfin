@@ -188,7 +188,7 @@ python ranking_client.py
 python trading_client.py
 ```
 
-- To train using training_client.py:
+- To train:
 
 1. First change the mode in control.py:
 ```bash
@@ -200,11 +200,10 @@ mode = 'train'
 3. Execute on terminal:
 
 ```bash
-cd TradeSim
-python main.py
+python TradeSim/main.py
 ```
 
-- To test using training_client.py:
+- To test:
 
 1. First change the mode in control.py:
 ```bash
@@ -213,10 +212,10 @@ mode = 'test'
 
 2. Adjust parameters according to your specifications in control.py. Advice is to not overlap your training dates and testing dates.
 
-3. Execute on terminal:
+3. Execute on terminal. This should generate a tearsheet which you can open on your browser. Tearsheet will be located in ./tearsheet directory:
 
 ```bash
-python training_client.py
+python TradeSim/main.py
 ```
 
 - To push your model into MongoDB:
@@ -231,15 +230,12 @@ mode = 'push'
 3. Execute on terminal:
 
 ```bash
-python training_client.py
+python TradeSim/main.py
 ```
-
-Tutorial on how to train, test, and push:
-https://www.youtube.com/watch?v=lpoFWxcSbzU
 
 ## ⚠️ IMPORTANT
 
-For people looking to do live trading, I suggest training via running ranking_client.py for at least two weeks before running the trading system altogether. Or train using training_client.py before executing live trades. This way, you're running with a client that has been trained to a certain extent (with strategies ranked) and is ready to go. Otherwise, you will most likely be buying random stocks.
+For people looking to do live trading, I suggest training via running ranking_client.py for at least two weeks before running the trading system altogether. Or train using TradeSim directory and push changes into MongoDB before executing live trades. This way, you're running with a client that has been trained to a certain extent (with strategies ranked) and is ready to go. Otherwise, you will most likely be buying random stocks.
 
 ## 📑 Logging
 

@@ -1,3 +1,5 @@
+
+
 from control import * 
 from helper_files.train_client_helper import *
 from helper_files.client_helper import * 
@@ -21,30 +23,30 @@ def initialize_simulation(period_start, period_end, train_tickers, mongo_client,
         period = indicator_collection.find_one({'indicator': strategy.__name__})
         if period:
             ideal_period[strategy.__name__] = period['ideal_period']
-            # logger.info(f"Retrieved ideal period for {strategy.__name__}: {period['ideal_period']}")
+            logger.info(f"Retrieved ideal period for {strategy.__name__}: {period['ideal_period']}")
         else:
             logger.info(f"No ideal period found for {strategy.__name__}, using default.")
 
     # Fetch tickers if none are provided
     if not train_tickers:
-        # logger.info("No tickers provided. Fetching Nasdaq tickers...")
+        logger.info("No tickers provided. Fetching Nasdaq tickers...")
         train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
-        # logger.info(f"Fetched {len(train_tickers)} tickers.")
+        logger.info(f"Fetched {len(train_tickers)} tickers.")
 
     # Determine historical data start date
     start_date = datetime.strptime(period_start, "%Y-%m-%d")
     data_start_date = (start_date - timedelta(days=730)).strftime("%Y-%m-%d")
-    # logger.info(f"Fetching historical data from {data_start_date} to {period_end}.")
+    logger.info(f"Fetching historical data from {data_start_date} to {period_end}.")
 
     for ticker in train_tickers:
         try:
             data = yf.Ticker(ticker).history(start=data_start_date, end=period_end, interval="1d")
-            # logger.info(f"Successfully retrieved data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
+            logger.info(f"Successfully retrieved data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
             ticker_price_history[ticker] = data
         except Exception as e:
-            # logger.info(f"Error retrieving specific date range for {ticker}, fetching max available data. Error: {str(e)}")
+            logger.info(f"Error retrieving specific date range for {ticker}, fetching max available data. Error: {str(e)}")
             data = yf.Ticker(ticker).history(period="max", interval="1d")
-            # logger.info(f"Successfully retrieved max available data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
+            logger.info(f"Successfully retrieved max available data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
             ticker_price_history[ticker] = data
 
     logger.info("Simulation initialization complete.")

@@ -108,6 +108,8 @@ def generate_tear_sheet(account_values, filename):
     # Fill missing values by linear interpolation
     account_values = account_values.interpolate(method='linear')  
     
+    
+    
     # Generate quantstats report
     qs.reports.html(
         account_values.pct_change(), 
