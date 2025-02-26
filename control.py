@@ -49,8 +49,10 @@ please keep in mind training takes quite a long time. Our team trained it on a 1
 so please understand the time it takes to train.
 
 """
-period_start = "2001-01-01"
-period_end = "2009-12-31"
+train_period_start = "2001-01-01"
+train_period_end = "2001-01-31"
+test_period_start = '2001-02-01'
+test_period_end = '2001-02-28'
 train_tickers = []
 
 """
