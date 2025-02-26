@@ -1,53 +1,92 @@
-
-
 from control import * 
 from helper_files.train_client_helper import *
 from helper_files.client_helper import * 
 from strategies.talib_indicators import *
+from datetime import datetime, timedelta
+import pandas as pd
 
 def initialize_simulation(period_start, period_end, train_tickers, mongo_client, FINANCIAL_PREP_API_KEY, logger):
     """
     Initializes the simulation by loading necessary data and setting up initial states.
+    Optimizations:
+      - Batch fetch indicator periods from MongoDB.
+      - Bulk download ticker historical data using yfinance with threading.
+      - Fallback to individual max period download if bulk download returns no data.
     """
     logger.info("Initializing simulation...")
 
     ticker_price_history = {}
     ideal_period = {}
 
-    # Connect to MongoDB and retrieve indicator periods
+    # Connect to MongoDB and batch fetch indicator periods for all strategies.
     db = mongo_client.IndicatorsDatabase
     indicator_collection = db.Indicators
     logger.info("Connected to MongoDB: Retrieved Indicators collection.")
+    
+    # Assuming 'strategies' is a global list of strategy objects
+    strategy_names = [strategy.__name__ for strategy in strategies]
+    indicator_docs = list(indicator_collection.find({'indicator': {"$in": strategy_names}}))
+    indicator_lookup = {doc['indicator']: doc.get('ideal_period') for doc in indicator_docs}
     for strategy in strategies:
-        
-        period = indicator_collection.find_one({'indicator': strategy.__name__})
-        if period:
-            ideal_period[strategy.__name__] = period['ideal_period']
-            logger.info(f"Retrieved ideal period for {strategy.__name__}: {period['ideal_period']}")
+        if strategy.__name__ in indicator_lookup:
+            ideal_period[strategy.__name__] = indicator_lookup[strategy.__name__]
+            logger.info(f"Retrieved ideal period for {strategy.__name__}: {indicator_lookup[strategy.__name__]}")
         else:
             logger.info(f"No ideal period found for {strategy.__name__}, using default.")
 
-    # Fetch tickers if none are provided
+    # If no tickers provided, fetch Nasdaq tickers
     if not train_tickers:
         logger.info("No tickers provided. Fetching Nasdaq tickers...")
         train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
         logger.info(f"Fetched {len(train_tickers)} tickers.")
 
-    # Determine historical data start date
+    # Determine the historical data start date (2 years before period_start)
     start_date = datetime.strptime(period_start, "%Y-%m-%d")
     data_start_date = (start_date - timedelta(days=730)).strftime("%Y-%m-%d")
     logger.info(f"Fetching historical data from {data_start_date} to {period_end}.")
 
+    # Bulk download ticker data using yfinance (with threading enabled)
+    try:
+        bulk_data = yf.download(
+            tickers=train_tickers,
+            start=data_start_date,
+            end=period_end,
+            interval="1d",
+            group_by='ticker',
+            threads=True
+        )
+    except Exception as bulk_err:
+        logger.error(f"Bulk download failed: {str(bulk_err)}")
+        bulk_data = None
+
+    # Process each ticker's data. If bulk data is missing or empty for a ticker, fall back to max period download.
     for ticker in train_tickers:
         try:
-            data = yf.Ticker(ticker).history(start=data_start_date, end=period_end, interval="1d")
-            logger.info(f"Successfully retrieved data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
-            ticker_price_history[ticker] = data
+            ticker_data = None
+            if bulk_data is not None:
+                # If multiple tickers, data has a MultiIndex on columns.
+                if isinstance(bulk_data.columns, pd.MultiIndex) and ticker in bulk_data.columns.levels[0]:
+                    ticker_data = bulk_data[ticker]
+                # If only one ticker was downloaded, bulk_data may be a regular DataFrame.
+                elif not isinstance(bulk_data.columns, pd.MultiIndex):
+                    ticker_data = bulk_data
+            # Check if data was successfully retrieved.
+            if ticker_data is None or ticker_data.empty:
+                raise Exception("No data from bulk download")
+            logger.info(f"Successfully retrieved data for {ticker}: {ticker_data.index[0].date()} to {ticker_data.index[-1].date()}")
+            ticker_price_history[ticker] = ticker_data
         except Exception as e:
-            logger.info(f"Error retrieving specific date range for {ticker}, fetching max available data. Error: {str(e)}")
-            data = yf.Ticker(ticker).history(period="max", interval="1d")
-            logger.info(f"Successfully retrieved max available data for {ticker}: {data.iloc[0].name.date()} to {data.iloc[-1].name.date()}")
-            ticker_price_history[ticker] = data
+            logger.info(f"Error retrieving specific date range for {ticker} via bulk download, fetching max available data. Error: {str(e)}")
+            try:
+                ticker_data = yf.Ticker(ticker).history(period="max", interval="1d")
+                if ticker_data.empty:
+                    logger.warning(f"No data available for {ticker} even for max period.")
+                else:
+                    logger.info(f"Successfully retrieved max available data for {ticker}: {ticker_data.index[0].date()} to {ticker_data.index[-1].date()}")
+                ticker_price_history[ticker] = ticker_data
+            except Exception as e2:
+                logger.error(f"Failed to retrieve data for {ticker}: {str(e2)}")
+                ticker_price_history[ticker] = None
 
     logger.info("Simulation initialization complete.")
     return ticker_price_history, ideal_period

@@ -1,5 +1,3 @@
-
-
 from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
 from config import *
 from utils import * 
@@ -17,24 +15,9 @@ from ranking_client import update_ranks
 ca = certifi.where()
 
 results_dir = 'results'
-logs_dir = 'logs'
-
-# Create the directory if it doesn't exist
-if not os.path.exists(logs_dir):
-    os.makedirs(logs_dir)
 
 if not os.path.exists(results_dir):
         os.makedirs(results_dir)   
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-file_handler = logging.FileHandler(os.path.join(logs_dir, 'training.log'))
-file_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
 
 def push():
     with open('training_results.json', 'r') as json_file:

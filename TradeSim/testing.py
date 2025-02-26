@@ -1,5 +1,3 @@
-
-
 from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
 from config import *
 from strategies.talib_indicators import simulate_strategy
@@ -10,29 +8,12 @@ from pymongo import MongoClient
 from control import *
 import os
 import heapq
-import logging
 from helper_files.client_helper import *
 from helper_files.train_client_helper import *
 
 results_dir = 'results'
-logs_dir = 'logs'
-
-# Create the directory if it doesn't exist
-if not os.path.exists(logs_dir):
-    os.makedirs(logs_dir)
-
 if not os.path.exists(results_dir):
         os.makedirs(results_dir)   
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-file_handler = logging.FileHandler(os.path.join(logs_dir, 'testing.log'))
-file_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
 
 ca = certifi.where()
 mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
@@ -129,15 +110,14 @@ def update_strategy_ranks(strategies, points, trading_simulator):
         
     return rank
 
-def test():
-    global train_tickers
+def test(ticker_price_history, ideal_period, mongo_client, logger):
     """
     Runs the testing phase of the trading simulator.
     """
+    global train_tickers
     logger.info("Starting testing phase...")
 
     # Get rank coefficients from database
-    mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
     db = mongo_client.trading_simulator
     r_t_c = db.rank_to_coefficient
     rank_to_coefficient = {doc['rank']: doc['coefficient'] for doc in r_t_c.find({})}
@@ -152,17 +132,12 @@ def test():
         time_delta = results['time_delta']
     logger.info("Training results loaded successfully.")
 
-    # Initialize simulation data
-    ticker_price_history, ideal_period = initialize_simulation(
-        period_start, period_end, train_tickers, mongo_client, FINANCIAL_PREP_API_KEY, logger
-    )
-
     # Initialize testing variables
     strategy_to_coefficient = {}
     account = initialize_test_account()
     rank = update_strategy_ranks(strategies, points, trading_simulator)
-    start_date = datetime.strptime(period_start, "%Y-%m-%d")
-    end_date = datetime.strptime(period_end, "%Y-%m-%d")
+    start_date = datetime.strptime(test_period_start, "%Y-%m-%d")
+    end_date = datetime.strptime(test_period_end, "%Y-%m-%d")
     current_date = start_date
     account_values = pd.Series(index=pd.date_range(start=start_date, end=end_date))
     logger.info(f"Testing period: {start_date} to {end_date}")

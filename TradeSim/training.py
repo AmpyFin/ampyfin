@@ -1,53 +1,22 @@
-
-
-from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
+from TradeSim.utils import simulate_trading_day, update_time_delta
 from config import *
 from utils import * 
 import heapq
-import certifi
-from pymongo import MongoClient
 from control import *
 import os
-import logging
 from helper_files.client_helper import *
 from helper_files.train_client_helper import *
 from datetime import datetime, timedelta
 
-
-ca = certifi.where()
-
 results_dir = 'results'
-logs_dir = 'logs'
-
-# Create the directory if it doesn't exist
-if not os.path.exists(logs_dir):
-    os.makedirs(logs_dir)
-
 if not os.path.exists(results_dir):
         os.makedirs(results_dir)   
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-file_handler = logging.FileHandler(os.path.join(logs_dir, 'training.log'))
-file_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-
-
-def train():
-    global train_tickers
-    logger.info("Initializing simulation...")
-    mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
-    ticker_price_history, ideal_period = initialize_simulation(
-        period_start, period_end, train_tickers, mongo_client, FINANCIAL_PREP_API_KEY, logger
-    )
-    
+def train(ticker_price_history, ideal_period, mongo_client, logger):
     """
     get from ndaq100
     """
+    global train_tickers
     if not train_tickers:
         train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
         logger.info(f"Fetched {len(train_tickers)} tickers.")
@@ -72,8 +41,8 @@ def train():
     
     logger.info("Trading simulator and points initialized.")
 
-    start_date = datetime.strptime(period_start, "%Y-%m-%d")
-    end_date = datetime.strptime(period_end, "%Y-%m-%d")
+    start_date = datetime.strptime(train_period_start, "%Y-%m-%d")
+    end_date = datetime.strptime(train_period_end, "%Y-%m-%d")
     current_date = start_date
     
     logger.info(f"Training period: {start_date} to {end_date}")
