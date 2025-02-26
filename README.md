@@ -188,7 +188,7 @@ python ranking_client.py
 python trading_client.py
 ```
 
-- To train:
+- To train & test:
 
 1. First change the mode in control.py:
 ```bash
@@ -198,21 +198,6 @@ mode = 'train'
 2. Adjust parameters according to your specifications in control.py
 
 3. Execute on terminal:
-
-```bash
-python TradeSim/main.py
-```
-
-- To test:
-
-1. First change the mode in control.py:
-```bash
-mode = 'test'
-```
-
-2. Adjust parameters according to your specifications in control.py. Advice is to not overlap your training dates and testing dates.
-
-3. Execute on terminal. This should generate a tearsheet which you can open on your browser. Tearsheet will be located in ./tearsheet directory:
 
 ```bash
 python TradeSim/main.py
