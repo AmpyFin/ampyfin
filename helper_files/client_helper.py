@@ -37,7 +37,6 @@ def connect_to_mongo(mongo_url):
     return MongoClient(mongo_url)
 
 # Helper to place an order
-# Helper to place an order
 def place_order(trading_client, symbol, side, quantity, mongo_client):
     """
     Place a market order and log the order to MongoDB.

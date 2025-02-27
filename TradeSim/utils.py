@@ -4,6 +4,8 @@ from helper_files.client_helper import *
 from strategies.talib_indicators import *
 from datetime import datetime, timedelta
 import pandas as pd
+from multiprocessing import Pool, cpu_count
+import functools
 
 def initialize_simulation(period_start, period_end, train_tickers, mongo_client, FINANCIAL_PREP_API_KEY, logger):
     """
@@ -30,7 +32,7 @@ def initialize_simulation(period_start, period_end, train_tickers, mongo_client,
     for strategy in strategies:
         if strategy.__name__ in indicator_lookup:
             ideal_period[strategy.__name__] = indicator_lookup[strategy.__name__]
-            logger.info(f"Retrieved ideal period for {strategy.__name__}: {indicator_lookup[strategy.__name__]}")
+            # logger.info(f"Retrieved ideal period for {strategy.__name__}: {indicator_lookup[strategy.__name__]}")
         else:
             logger.info(f"No ideal period found for {strategy.__name__}, using default.")
 
@@ -73,7 +75,7 @@ def initialize_simulation(period_start, period_end, train_tickers, mongo_client,
             # Check if data was successfully retrieved.
             if ticker_data is None or ticker_data.empty:
                 raise Exception("No data from bulk download")
-            logger.info(f"Successfully retrieved data for {ticker}: {ticker_data.index[0].date()} to {ticker_data.index[-1].date()}")
+            # logger.info(f"Successfully retrieved data for {ticker}: {ticker_data.index[0].date()} to {ticker_data.index[-1].date()}")
             ticker_price_history[ticker] = ticker_data
         except Exception as e:
             logger.info(f"Error retrieving specific date range for {ticker} via bulk download, fetching max available data. Error: {str(e)}")
@@ -162,56 +164,154 @@ def execute_trade(decision, qty, ticker, current_price, strategy, trading_simula
         
     return trading_simulator, points
 
-def simulate_trading_day(current_date, strategies, trading_simulator, points, time_delta, ticker_price_history, train_tickers, ideal_period, logger):
+def simulate_trading_day(current_date, strategies, trading_simulator, points, time_delta, 
+                                  ticker_price_history, train_tickers, precomputed_decisions, logger):
     """
-    Simulates trading activities for all strategies for a given day.
+    Optimized version of simulate_trading_day that uses precomputed strategy decisions.
     """
-    logger.info(f"Simulating trading for {current_date.strftime('%Y-%m-%d')}.")
-
-    if not train_tickers:
-        # logger.info("No tickers available for trading. Skipping simulation.")
-        return trading_simulator, points
+    date_str = current_date.strftime('%Y-%m-%d')
+    logger.info(f"Simulating trading for {date_str}.")
 
     for ticker in train_tickers:
-        if current_date.strftime('%Y-%m-%d') in ticker_price_history[ticker].index:
-            # logger.info(f"{ticker}: Data available for {current_date.strftime('%Y-%m-%d')}.")
-            daily_data = ticker_price_history[ticker].loc[current_date.strftime('%Y-%m-%d')]
+        if date_str in ticker_price_history[ticker].index:
+            daily_data = ticker_price_history[ticker].loc[date_str]
             current_price = daily_data['Close']
-            # logger.info(f"{ticker}: Current price: {current_price}")
-
+            
             for strategy in strategies:
-                # logger.info(f"Processing strategy: {strategy.__name__} for {ticker}.")
+                strategy_name = strategy.__name__
                 
-                # Fetch historical data
-                historical_data = get_historical_data(ticker, current_date, ideal_period[strategy.__name__], ticker_price_history)
-                # logger.info(f"{ticker} - {strategy.__name__}: Retrieved historical data for strategy.")
-
-                # Fetch account details
-                account_cash = trading_simulator[strategy.__name__]["amount_cash"]
-                portfolio_qty = trading_simulator[strategy.__name__]["holdings"].get(ticker, {}).get("quantity", 0)
-                total_portfolio_value = trading_simulator[strategy.__name__]["portfolio_value"]
-
-                # logger.info(f"{ticker} - {strategy.__name__}: Account Cash: {account_cash}, Portfolio Qty: {portfolio_qty}, Portfolio Value: {total_portfolio_value}")
-
-                # Make trading decision
-                decision, qty = simulate_strategy(
-                    strategy, ticker, current_price, historical_data, account_cash, portfolio_qty, total_portfolio_value
+                # Get precomputed strategy decision
+                action = precomputed_decisions[strategy_name][ticker].get(date_str)
+                
+                if action is None:
+                    # Skip if no precomputed decision (should not happen if properly precomputed)
+                    logger.warning(f"No precomputed decision for {ticker}, {strategy_name}, {date_str}")
+                    continue
+                
+                # Get account details for trade size calculation
+                account_cash = trading_simulator[strategy_name]["amount_cash"]
+                portfolio_qty = trading_simulator[strategy_name]["holdings"].get(ticker, {}).get("quantity", 0)
+                total_portfolio_value = trading_simulator[strategy_name]["portfolio_value"]
+                
+                # Compute trade decision and quantity based on precomputed action
+                decision, qty = compute_trade_quantities(
+                    action, current_price, account_cash, portfolio_qty, total_portfolio_value
                 )
-                # logger.info(f"{ticker} - {strategy.__name__}: Decision: {decision}, Quantity: {qty}")
-
+                
                 # Execute trade
                 trading_simulator, points = execute_trade(
                     decision, qty, ticker, current_price, strategy, trading_simulator, 
                     points, time_delta, portfolio_qty, total_portfolio_value
                 )
-                # logger.info(f"{ticker} - {strategy.__name__}: Trade executed.")
-
-        else:
-            logger.info(f"{ticker}: No data available for {current_date.strftime('%Y-%m-%d')}, skipping.")
-
-    if not trading_simulator or not points:
-        logger.info(f"Warning: Trading simulator or points dictionary is empty after simulation for {current_date.strftime('%Y-%m-%d')}.")
-
-    logger.info(f"Completed simulation for {current_date.strftime('%Y-%m-%d')}.")
+                
     return trading_simulator, points
 
+def compute_trade_quantities(action, current_price, account_cash, portfolio_qty, total_portfolio_value):
+    """
+    Computes trade decision and quantity based on the precomputed action.
+    This replaces the quantity calculation part of simulate_strategy.
+    """
+    max_investment = total_portfolio_value * trade_asset_limit
+    
+    if action == 'Buy':
+        return 'buy', min(int(max_investment // current_price), int(account_cash // current_price))
+    elif action == 'Sell' and portfolio_qty > 0:
+        return 'sell', min(portfolio_qty, max(1, int(portfolio_qty * 0.5)))
+    else:
+        return 'hold', 0
+
+def precompute_strategy_decisions(strategies, ticker_price_history, train_tickers, ideal_period, start_date, end_date, logger):
+    """
+    Precomputes strategy decisions using parallel processing.
+    """
+    logger.info("Precomputing strategy decisions with parallel processing...")
+    
+    # Convert string dates to datetime objects if needed
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+    
+    # Gather all valid trading days first
+    trading_days = []
+    current_date = start_date
+    while current_date <= end_date:
+        if current_date.weekday() < 5:  # Skip weekends
+            trading_days.append(current_date)
+        current_date += timedelta(days=1)
+    
+    # Initialize result structure
+    precomputed_decisions = {strategy.__name__: {ticker: {} for ticker in train_tickers} 
+                            for strategy in strategies}
+    
+    # Prepare parameters for parallel processing
+    # We'll process by date to allow better sharing of historical data
+    worker_func = functools.partial(
+        _process_single_day,
+        strategies=strategies,
+        ticker_price_history=ticker_price_history,
+        train_tickers=train_tickers,
+        ideal_period=ideal_period
+    )
+    
+    # Use a process pool to parallel process dates
+    num_workers = min(cpu_count(), len(trading_days))
+    logger.info(f"Using {num_workers} worker processes")
+    
+    with Pool(processes=num_workers) as pool:
+        results = pool.map(worker_func, trading_days)
+    
+    # Combine results from all processed days
+    for day_results in results:
+        if day_results:  # Skip empty results
+            date_str = day_results['date']
+            for strategy_name, strategy_data in day_results['strategies'].items():
+                for ticker, action in strategy_data.items():
+                    precomputed_decisions[strategy_name][ticker][date_str] = action
+    
+    logger.info(f"Strategy decision precomputation complete. Processed {len(results)} trading days.")
+    return precomputed_decisions
+
+def _process_single_day(date, strategies, ticker_price_history, train_tickers, ideal_period):
+    """
+    Process a single day for all tickers and strategies.
+    This function will be executed in a separate process.
+    """
+    date_str = date.strftime('%Y-%m-%d')
+    result = {
+        'date': date_str,
+        'strategies': {strategy.__name__: {} for strategy in strategies}
+    }
+    
+    # Find tickers with data for this date
+    available_tickers = [ticker for ticker in train_tickers 
+                        if date_str in ticker_price_history[ticker].index]
+    
+    if not available_tickers:
+        return None  # No tickers have data for this date
+    
+    # Process each ticker and strategy
+    for ticker in available_tickers:
+        current_price = ticker_price_history[ticker].loc[date_str]['Close']
+        
+        for strategy in strategies:
+            strategy_name = strategy.__name__
+            
+            try:
+                # Get historical data
+                historical_data = get_historical_data(
+                    ticker, date, ideal_period[strategy_name], ticker_price_history
+                )
+                
+                if historical_data is None or historical_data.empty:
+                    continue
+                
+                # Compute strategy signal
+                action = strategy(ticker, historical_data)
+                result['strategies'][strategy_name][ticker] = action
+                
+            except Exception:
+                # Skip errors in worker process
+                continue
+    
+    return result

@@ -12,7 +12,7 @@ results_dir = 'results'
 if not os.path.exists(results_dir):
         os.makedirs(results_dir)   
 
-def train(ticker_price_history, ideal_period, mongo_client, logger):
+def train(ticker_price_history, ideal_period, mongo_client, precomputed_decisions, logger):
     """
     get from ndaq100
     """
@@ -56,7 +56,7 @@ def train(ticker_price_history, ideal_period, mongo_client, logger):
             
         trading_simulator, points = simulate_trading_day(
             current_date, strategies, trading_simulator, points, 
-            time_delta, ticker_price_history, train_tickers, ideal_period, logger
+            time_delta, ticker_price_history, train_tickers, precomputed_decisions, logger
         )
 
         active_count, trading_simulator = local_update_portfolio_values(

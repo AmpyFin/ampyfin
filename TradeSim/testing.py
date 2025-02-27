@@ -1,7 +1,6 @@
-from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
+from TradeSim.utils import simulate_trading_day, update_time_delta, compute_trade_quantities
 from config import *
-from strategies.talib_indicators import simulate_strategy
-from utils import * 
+from utils import *
 from trading_client import weighted_majority_decision_and_median_quantity
 import certifi
 from pymongo import MongoClient
@@ -110,7 +109,7 @@ def update_strategy_ranks(strategies, points, trading_simulator):
         
     return rank
 
-def test(ticker_price_history, ideal_period, mongo_client, logger):
+def test(ticker_price_history, ideal_period, mongo_client, precomputed_decisions, logger):
     """
     Runs the testing phase of the trading simulator.
     """
@@ -159,9 +158,10 @@ def test(ticker_price_history, ideal_period, mongo_client, logger):
 
         # Process trading day
         buy_heap, suggestion_heap = [], []
+        date_str = current_date.strftime('%Y-%m-%d')
         for ticker in train_tickers:
-            if current_date.strftime('%Y-%m-%d') in ticker_price_history[ticker].index:
-                daily_data = ticker_price_history[ticker].loc[current_date.strftime('%Y-%m-%d')]
+            if date_str in ticker_price_history[ticker].index:
+                daily_data = ticker_price_history[ticker].loc[date_str]
                 current_price = daily_data['Close']
                 # logger.info(f"{ticker} - Current price: {current_price}")
 
@@ -173,11 +173,24 @@ def test(ticker_price_history, ideal_period, mongo_client, logger):
                 portfolio_qty = account["holdings"].get(ticker, {}).get("quantity", 0)
 
                 for strategy in strategies:
-                    historical_data = get_historical_data(ticker, current_date, ideal_period[strategy.__name__], ticker_price_history)
-                    decision, qty = simulate_strategy(
-                        strategy, ticker, current_price, historical_data,
-                        account["cash"], portfolio_qty, account["total_portfolio_value"]
+                    strategy_name = strategy.__name__
+                    
+                    # Get precomputed strategy decision
+                    action = precomputed_decisions[strategy_name][ticker].get(date_str)
+                    
+                    if action is None:
+                        # Skip if no precomputed decision (should not happen if properly precomputed)
+                        logger.warning(f"No precomputed decision for {ticker}, {strategy_name}, {date_str}")
+                        continue
+                    
+                    account_cash = account["cash"]
+                    total_portfolio_value = account["total_portfolio_value"]
+
+                    # Compute trade decision and quantity based on precomputed action
+                    decision, qty = compute_trade_quantities(
+                    action, current_price, account_cash, portfolio_qty, total_portfolio_value
                     )
+                
                     weight = strategy_to_coefficient[strategy.__name__]
                     decisions_and_quantities.append((decision, qty, weight))
 
@@ -219,7 +232,7 @@ def test(ticker_price_history, ideal_period, mongo_client, logger):
         # Simulate ranking updates
         trading_simulator, points = simulate_trading_day(
             current_date, strategies, trading_simulator, points,
-            time_delta, ticker_price_history, train_tickers, ideal_period, logger
+            time_delta, ticker_price_history, train_tickers, precomputed_decisions, logger
         )
 
         # Update portfolio values
