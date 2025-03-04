@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from multiprocessing import Pool, cpu_count
 import functools
+import wandb
 
 def initialize_simulation(period_start, period_end, train_tickers, mongo_client, FINANCIAL_PREP_API_KEY, logger):
     """
@@ -315,3 +316,5 @@ def _process_single_day(date, strategies, ticker_price_history, train_tickers, i
                 continue
     
     return result
+    
+    

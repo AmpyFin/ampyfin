@@ -9,6 +9,8 @@ import os
 import heapq
 from helper_files.client_helper import *
 from helper_files.train_client_helper import *
+import wandb 
+from variables import config_dict
 
 results_dir = 'results'
 if not os.path.exists(results_dir):
@@ -124,7 +126,7 @@ def test(ticker_price_history, ideal_period, mongo_client, precomputed_decisions
 
     # Load saved results
     logger.info("Loading saved training results...")
-    with open(os.path.join(results_dir, 'training_results.json'), 'r') as json_file:
+    with open(os.path.join(results_dir, f'{config_dict['experiment_name']}.json'), 'r') as json_file:
         results = json.load(json_file)
         trading_simulator = results['trading_simulator']
         points = results['points']
@@ -271,6 +273,8 @@ def test(ticker_price_history, ideal_period, mongo_client, precomputed_decisions
 
     # Calculate final metrics and generate tear sheet
     metrics = calculate_metrics(account_values)
+    wandb.log(metrics)
+
     logger.info("Final metrics calculated.")
     logger.info(metrics)
 

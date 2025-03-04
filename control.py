@@ -1,5 +1,8 @@
 # This file is simply to fine tune parameters and switch modes
 import sys
+
+project_name = 'FirstProject'
+experiment_name = 'FirstTest'
 # general parameters
 """
 time_delta_mode can be multiplicative, additive, or balanced. Additive results in less overfitting but could result in underfitting as time goes on
@@ -49,11 +52,11 @@ please keep in mind training takes quite a long time. Our team trained it on a 1
 so please understand the time it takes to train.
 
 """
-train_period_start = "2001-01-01"
-train_period_end = "2001-01-31"
-test_period_start = '2001-02-01'
-test_period_end = '2001-02-28'
-train_tickers = []
+train_period_start = "2023-01-01"
+train_period_end = "2023-01-31"
+test_period_start = '2024-02-01'
+test_period_end = '2024-02-25'
+train_tickers = ['AAPL', 'MSFT', 'TSLA', 'NVDA', 'AMZN', 'GOOGL', 'META']
 
 """
 train_time_delta_mode can be multiplicative, additive, or balanced. Additive results in less overfitting but could result in underfitting as time goes on
@@ -91,7 +94,7 @@ train_trade_asset_limit to portfolio is how much asset you are allowed to hold i
 The lower this number, the more diversification you will have in your portfolio. The higher the number, 
 the less diversification you will have but it will be buying more selective assets.
 """
-train_trade_asset_limit = 0.1
+train_trade_asset_limit = 0.4
 
 
 
@@ -183,7 +186,7 @@ you should penalize the strategy by a multiple of time_delta * 1.
 loss_price_delta_else is the penalty you should apply if the loss exceeds loss_price_change_ratio_d2.
 """
 loss_price_change_ratio_d1 = 0.975  
-loss_profit_time_d1 = 1   
+loss_profit_time_d1 = 1
 loss_price_change_ratio_d2 = 0.95  
 loss_profit_time_d2 = 1.5  
 loss_profit_time_else = 2  

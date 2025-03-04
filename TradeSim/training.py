@@ -7,6 +7,8 @@ import os
 from helper_files.client_helper import *
 from helper_files.train_client_helper import *
 from datetime import datetime, timedelta
+import wandb
+from variables import config_dict
 
 results_dir = 'results'
 if not os.path.exists(results_dir):
@@ -90,19 +92,31 @@ def train(ticker_price_history, ideal_period, mongo_client, precomputed_decision
         "time_delta": time_delta
     }
 
-    results_file_path = os.path.join(results_dir, 'training_results.json')
+    results_file_path = os.path.join(results_dir, f'{config_dict['experiment_name']}.json')
     with open(results_file_path, 'w') as json_file:
         json.dump(results, json_file, indent=4)
     
+    # Create an artifact
+    artifact = wandb.Artifact(f'{config_dict['experiment_name']}.json', type="results")
+    artifact.add_file(results_file_path)
+    
+    # Log artifact to the current run
+    wandb.log_artifact(artifact)
+
     logger.info(f"Training results saved to {results_file_path}")
 
     top_portfolio_values = heapq.nlargest(10, trading_simulator.items(), key=lambda x: x[1]["portfolio_value"])
     top_points = heapq.nlargest(10, points.items(), key=lambda x: x[1])
 
+    top_portfolio_values_list = []
     logger.info("Top 10 strategies with highest portfolio values:")
     for strategy, value in top_portfolio_values:
+        top_portfolio_values_list.append([strategy, value['portfolio_value']])
         logger.info(f"{strategy} - {value['portfolio_value']}")
     
+    wandb.log({"TRAIN_top_portfolio_values":top_portfolio_values_list})
+    wandb.log({"TRAIN_top_points":top_points})
+
     logger.info("Top 10 strategies with highest points:")
     for strategy, value in top_points:
         logger.info(f"{strategy} - {value}")

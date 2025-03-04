@@ -178,6 +178,13 @@ pip install -r requirements.txt
 - Run the setup script `setup.py`:
 - After running the mongo setup script, the MongoDB setup for the rest will be completed on the first minute in trading for both ranking and trading.
 
+### 6️⃣ Set Up Weights & Biases
+- Sign up for Weights and Biases (https://wandb.ai/site/)
+- Login to wandb on terminal using the below command and enter the API key and press enter
+
+```bash
+wandb login
+```
 
 ## ⚡ Usage
 

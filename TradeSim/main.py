@@ -8,9 +8,11 @@ from training import train
 from testing import test
 from push import push
 import logging
+import wandb
 from pymongo import MongoClient
 from TradeSim.utils import initialize_simulation, precompute_strategy_decisions
 from helper_files.client_helper import strategies, get_ndaq_tickers
+from variables import config_dict
 
 import certifi
 ca = certifi.where()
@@ -33,6 +35,9 @@ logger.addHandler(file_handler)
 if __name__ == "__main__":
 
     mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
+
+    # Initialize W&B run
+    wandb.init(project=config_dict['project_name'], config=config_dict, name=config_dict['experiment_name'])
 
     # If no tickers provided, fetch Nasdaq tickers
     if not train_tickers:
