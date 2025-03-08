@@ -1,31 +1,27 @@
-from TradeSim.utils import initialize_simulation, simulate_trading_day, update_time_delta
-from config import *
-from utils import * 
-import heapq
+import json
+import os
+from datetime import datetime
+
 import certifi
 from pymongo import MongoClient
-from control import *
-import os
-import logging
-from helper_files.client_helper import *
-from helper_files.train_client_helper import *
-from datetime import datetime, timedelta
+
+from config import mongo_url
 from ranking_client import update_ranks
 
 ca = certifi.where()
 
-results_dir = 'results'
+results_dir = "results"
 
 if not os.path.exists(results_dir):
-        os.makedirs(results_dir)   
+    os.makedirs(results_dir)
+
 
 def push():
-    with open('training_results.json', 'r') as json_file:
+    with open("training_results.json", "r") as json_file:
         results = json.load(json_file)
-        trading_simulator = results['trading_simulator']
-        points = results['points']
-        date = results['date']
-        time_delta = results['time_delta']
+        trading_simulator = results["trading_simulator"]
+        points = results["points"]
+        time_delta = results["time_delta"]
 
     # Push the trading simulator and points to the database
     mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
@@ -46,10 +42,10 @@ def push():
                     "failed_trades": value["failed_trades"],
                     "portfolio_value": value["portfolio_value"],
                     "last_updated": datetime.now(),
-                    "initialized_date": datetime.now()
+                    "initialized_date": datetime.now(),
                 }
             },
-            upsert=True
+            upsert=True,
         )
 
     for strategy, value in points.items():
@@ -59,10 +55,10 @@ def push():
                 "$set": {
                     "total_points": value,
                     "last_updated": datetime.now(),
-                    "initialized_date": datetime.now()
+                    "initialized_date": datetime.now(),
                 }
             },
-            upsert=True
+            upsert=True,
         )
 
     db.time_delta.update_one({}, {"$set": {"time_delta": time_delta}}, upsert=True)

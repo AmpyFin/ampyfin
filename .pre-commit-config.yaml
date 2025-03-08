@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        name: Black Code Formatter
+  
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        name: isort (Import Sorter)
+        # Optional arguments. Setting the profile to "black" ensures isort cooperates with Black's format.
+        args: ["--profile", "black"]
+        
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.2
+    hooks:
+      - id: flake8
+        name: Flake8 Linter
+        args:
+          - "--max-line-length=160"
+          - "--ignore=E203,W503,E231,E402"
+        additional_dependencies: []

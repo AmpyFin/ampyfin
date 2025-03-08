@@ -18,3 +18,9 @@ TA-Lib
 pandas-ta
 git+https://github.com/NitinDatta8/quantstats.git
 wandb
+pre-commit
+black==25.1.0
+isort==6.0.1
+flake8==7.1.2
+
+
