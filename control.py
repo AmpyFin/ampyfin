@@ -41,7 +41,7 @@ There will be an option to:
  - delete this model to start with a new model
 'test' means running running your training results on simulator.
 'push' means pushing your trained json to the database. This is only available for the ranking client.
-The default for mode is live to protect against accidental training
+The default for mode is live to protect against accidental training.
 benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, DOW, or NDAQ.
 """
 

@@ -13,6 +13,7 @@ repos:
         # Optional arguments. Setting the profile to "black" ensures isort cooperates with Black's format.
         args: ["--profile", "black"]
         
+        
   - repo: https://github.com/PyCQA/flake8
     rev: 7.1.2
     hooks:

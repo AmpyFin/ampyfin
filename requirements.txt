@@ -17,14 +17,10 @@ datetime
 TA-Lib
 pandas-ta
 git+https://github.com/NitinDatta8/quantstats.git
-<<<<<<< HEAD
-wandb
-=======
+
 wandb
 pre-commit
 black==25.1.0
 isort==6.0.1
 flake8==7.1.2
 
-
->>>>>>> d3b080a7848d4e3fbde7efbbcc4e13ef859e6dea
