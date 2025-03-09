@@ -33,18 +33,18 @@ take_profit = 0.05
 # training_client.py parameters
 """
 mode is switched between 'train', 'test', live, and 'push'.
+'live is the default safe mode'
 'train' means running ranking_client.py and getting updated trading_simulator.
 There will be an option to:
  - update your database if this is the data you want to insert into the database given better results during test
  - save this model to run testing before you decide to update your database
  - delete this model to start with a new model
 'test' means running running your training results on simulator.
-'live' means running your bot in live ranking mode.
 'push' means pushing your trained bot to the database. This is only available for the ranking client.
 The default for mode is live to protect against accidental training
-benchmark asset is what benchmark you want to compare to
+benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, or NDAQ...
 """
-mode = "test"
+mode = "live"
 
 benchmark_asset = "QQQ"
 """
