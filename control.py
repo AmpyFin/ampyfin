@@ -42,7 +42,7 @@ There will be an option to:
 'test' means running running your training results on simulator.
 'push' means pushing your trained bot to the database. This is only available for the ranking client.
 The default for mode is live to protect against accidental training
-benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, or NDAQ...
+benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, DOW, or NDAQ...
 """
 
 mode = "live"
