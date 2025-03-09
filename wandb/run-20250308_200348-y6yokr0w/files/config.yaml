@@ -1,0 +1,109 @@
+_wandb:
+    value:
+        cli_version: 0.19.8
+        m: []
+        python_version: 3.12.3
+        t:
+            "1":
+                - 55
+            "2":
+                - 55
+            "3":
+                - 13
+                - 16
+                - 23
+                - 55
+            "4": 3.12.3
+            "5": 0.19.8
+            "8":
+                - 3
+                - 5
+            "12": 0.19.8
+            "13": windows-amd64
+experiment_name:
+    value: FourthTest
+loss:
+    value:
+        price_change_ratio_d1: 0.975
+        price_change_ratio_d2: 0.95
+        profit_time_d1: 1
+        profit_time_d2: 1.5
+        profit_time_else: 2
+mode:
+    value: test
+profit:
+    value:
+        price_change_ratio_d1: 1.05
+        price_change_ratio_d2: 1.1
+        profit_time_d1: 1
+        profit_time_d2: 1.5
+        profit_time_else: 1.2
+project_name:
+    value: AmpyFin - TestRound
+rank_asset_limit:
+    value: 0.1
+rank_liquidity_limit:
+    value: 15000
+stop_loss:
+    value: 0.03
+suggestion_heap_limit:
+    value: 600000
+take_profit:
+    value: 0.05
+test_period:
+    value:
+        end: "2024-01-30"
+        start: "2024-01-15"
+time_delta:
+    value:
+        balanced: 0.2
+        increment: 0.01
+        mode: balanced
+        multiplicative: 1.01
+trade_asset_limit:
+    value: 0.1
+trade_liquidity_limit:
+    value: 15000
+train_loss:
+    value:
+        price_change_ratio_d1: 0.975
+        price_change_ratio_d2: 0.95
+        profit_time_d1: 1
+        profit_time_d2: 1.5
+        profit_time_else: 2
+train_period:
+    value:
+        end: "2024-01-15"
+        start: "2024-01-01"
+train_profit:
+    value:
+        price_change_ratio_d1: 1.05
+        price_change_ratio_d2: 1.1
+        profit_time_d1: 1
+        profit_time_d2: 1.5
+        profit_time_else: 1.2
+train_rank_asset_limit:
+    value: 0.3
+train_rank_liquidity_limit:
+    value: 15000
+train_start_cash:
+    value: 50000
+train_stop_loss:
+    value: 0.03
+train_suggestion_heap_limit:
+    value: 600000
+train_take_profit:
+    value: 0.05
+train_tickers:
+    value: []
+train_time_delta:
+    value:
+        balanced: 0.2
+        increment: 0.01
+        mode: balanced
+        multiplicative: 1.01
+        start: 2.2250738585072014e-308
+train_trade_asset_limit:
+    value: 0.4
+train_trade_liquidity_limit:
+    value: 15000

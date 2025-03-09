@@ -24,6 +24,7 @@ from control import (
     train_trade_asset_limit,
     train_trade_liquidity_limit,
 )
+from control import benchmark_asset
 
 train_tickers
 from helper_files.client_helper import get_ndaq_tickers, strategies
@@ -395,7 +396,7 @@ def test(
     logger.info("Final metrics calculated.")
     logger.info(metrics)
 
-    generate_tear_sheet(account_values, "SPY_vs_strategy")
+    generate_tear_sheet(account_values, filename=f"{benchmark_asset}_vs_strategy")
     logger.info("Tear sheet generated.")
 
     # Print final results

@@ -10,6 +10,7 @@ from pymongo import MongoClient
 from testing import test
 from training import train
 from variables import config_dict
+from push import push
 
 # Local module imports after standard/third-party imports
 from config import FINANCIAL_PREP_API_KEY, mongo_url
@@ -84,6 +85,7 @@ if __name__ == "__main__":
             precomputed_decisions,
             logger,
         )
+    
         test(
             ticker_price_history,
             ideal_period,
@@ -91,5 +93,15 @@ if __name__ == "__main__":
             precomputed_decisions,
             logger,
         )
+    elif mode == "test":
+        test(
+            ticker_price_history,
+            ideal_period,
+            mongo_client,
+            precomputed_decisions,
+            logger,
+        )
+    elif mode == "push":
+        push()
     # elif mode == "push":
     #     push()

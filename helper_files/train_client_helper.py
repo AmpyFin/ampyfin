@@ -4,7 +4,10 @@ from datetime import timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 import quantstats as qs
+import sys
 
+from control import benchmark_asset
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def get_historical_data(ticker, current_date, period, ticker_price_history):
     period_start_date = {
@@ -124,7 +127,7 @@ def generate_tear_sheet(account_values, filename):
     # Generate quantstats report
     qs.reports.html(
         account_values.pct_change(),
-        "SPY",
-        title="Strategy vs SPY",
+        benchmark=benchmark_asset,
+        title=f"Strategy vs {benchmark_asset}",
         output=f"tearsheets/{filename}.html",
     )

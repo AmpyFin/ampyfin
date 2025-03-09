@@ -7,7 +7,8 @@ from pymongo import MongoClient
 
 from config import mongo_url
 from ranking_client import update_ranks
-
+from control import experiment_name
+from variables import config_dict
 ca = certifi.where()
 
 results_dir = "results"
@@ -17,7 +18,9 @@ if not os.path.exists(results_dir):
 
 
 def push():
-    with open("training_results.json", "r") as json_file:
+    with open(
+        os.path.join(results_dir, f"{config_dict['experiment_name']}.json"), "r"
+    ) as json_file:
         results = json.load(json_file)
         trading_simulator = results["trading_simulator"]
         points = results["points"]

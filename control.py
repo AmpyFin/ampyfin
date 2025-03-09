@@ -1,7 +1,7 @@
 import sys
 
-project_name = "FirstProject"
-experiment_name = "FirstTest"
+project_name = "AmpyFin - TestRound"
+experiment_name = "FourthTest"
 # general parameters
 """
 time_delta_mode can be multiplicative, additive, or balanced.
@@ -42,9 +42,11 @@ There will be an option to:
 'live' means running your bot in live ranking mode.
 'push' means pushing your trained bot to the database. This is only available for the ranking client.
 The default for mode is live to protect against accidental training
+benchmark asset is what benchmark you want to compare to
 """
-mode = "train"
+mode = "test"
 
+benchmark_asset = "QQQ"
 """
 training parameters - run purely on ranking_client.py
 period_start and period_end are the start and end date of the period you want to train
@@ -55,11 +57,11 @@ Our team trained it on a 1m tick, but even on a 1d tick, it takes a really long 
 so please understand the time it takes to train.
 
 """
-train_period_start = "2023-01-01"
-train_period_end = "2023-01-31"
-test_period_start = "2024-02-01"
-test_period_end = "2024-02-25"
-train_tickers = ["AAPL", "MSFT", "TSLA", "NVDA", "AMZN", "GOOGL", "META"]
+train_period_start = "2024-01-01"
+train_period_end = "2024-01-15"
+test_period_start = "2024-01-15"
+test_period_end = "2024-01-30"
+train_tickers = []
 
 """
 train_time_delta_mode can be multiplicative, additive, or balanced.
