@@ -3,14 +3,15 @@ import os
 import sys
 
 import certifi
-import wandb
+from push import push
 
 # from push import push
 from pymongo import MongoClient
 from testing import test
 from training import train
 from variables import config_dict
-from push import push
+
+import wandb
 
 # Local module imports after standard/third-party imports
 from config import FINANCIAL_PREP_API_KEY, mongo_url
@@ -85,7 +86,7 @@ if __name__ == "__main__":
             precomputed_decisions,
             logger,
         )
-    
+
         test(
             ticker_price_history,
             ideal_period,

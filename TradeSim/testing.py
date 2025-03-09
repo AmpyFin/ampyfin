@@ -6,12 +6,13 @@ from datetime import datetime, timedelta
 
 import certifi
 import pandas as pd
-import wandb
 from pymongo import MongoClient
 from variables import config_dict
 
+import wandb
 from config import FINANCIAL_PREP_API_KEY, mongo_url
 from control import (
+    benchmark_asset,
     test_period_end,
     test_period_start,
     trade_asset_limit,
@@ -24,7 +25,6 @@ from control import (
     train_trade_asset_limit,
     train_trade_liquidity_limit,
 )
-from control import benchmark_asset
 
 train_tickers
 from helper_files.client_helper import get_ndaq_tickers, strategies

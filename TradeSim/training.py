@@ -5,9 +5,9 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-import wandb
 from variables import config_dict
 
+import wandb
 from config import FINANCIAL_PREP_API_KEY
 
 # Add the parent directory to the Python path
