@@ -14,7 +14,7 @@ time_delta_multiplicative is used for multiplicative purpose
 time_delta_balanced is used for balanced purpose - 0.2 means 0.8 is data influence and 0.2 is current influence.
 This is used by both ranking and training clients
 """
-time_delta_mode = "balanced"
+time_delta_mode = "additive"
 time_delta_increment = 0.01
 time_delta_multiplicative = 1.01
 time_delta_balanced = 0.2
@@ -33,7 +33,7 @@ take_profit = 0.05
 # training_client.py parameters
 """
 mode is switched between 'train', 'test', live, and 'push'.
-'live is the default safe mode'
+'live is the default safe mode. We keep the mode to live to indicate that the bot is in trading / ranking mode.
 'train' means running ranking_client.py and getting updated trading_simulator.
 There will be an option to:
  - update your database if this is the data you want to insert into the database given better results during test
