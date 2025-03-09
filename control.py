@@ -44,6 +44,7 @@ There will be an option to:
 The default for mode is live to protect against accidental training
 benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, or NDAQ...
 """
+
 mode = "live"
 
 benchmark_asset = "QQQ"
@@ -57,10 +58,13 @@ Our team trained it on a 1m tick, but even on a 1d tick, it takes a really long 
 so please understand the time it takes to train.
 
 """
+
 train_period_start = "2024-01-01"
 train_period_end = "2024-01-15"
 test_period_start = "2024-01-15"
 test_period_end = "2024-01-30"
+
+
 train_tickers = []
 
 """
