@@ -1,6 +1,5 @@
 version: 2
 
-# Set the OS, Python version, and other tools you might need
 build:
   os: ubuntu-24.04
   tools:
@@ -8,9 +7,7 @@ build:
 
 python:
   install:
-    - requirements: requirements.txt
-    - method: pip
-      path: .
+    - requirements: docs/requirements.txt  # Install only necessary documentation dependencies
 
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: docs/source/conf.py  # Ensure correct configuration path
