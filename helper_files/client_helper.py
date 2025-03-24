@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+import pandas_market_calendars as mcal
 import yfinance as yf
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.trading.requests import MarketOrderRequest
@@ -376,25 +377,24 @@ def get_ndaq_tickers():
     return df["Ticker"].tolist()
 
 
-# Market status checker helper
-def market_status(polygon_client):
-    """
-    Check market status using the Polygon API.
+def market_status():
+    nasdaq = mcal.get_calendar("NASDAQ")
+    now = pd.Timestamp.utcnow()
 
-    :param polygon_client: An instance of the Polygon RESTClient
-    :return: Current market status ('open', 'early_hours', 'closed')
-    """
-    try:
-        status = polygon_client.get_market_status()
-        if status.exchanges.nasdaq == "open" and status.exchanges.nyse == "open":
-            return "open"
-        elif status.early_hours:
-            return "early_hours"
-        else:
-            return "closed"
-    except Exception as e:
-        logging.error(f"Error retrieving market status: {e}")
-        return "error"
+    schedule = nasdaq.schedule(start_date=now.date(), end_date=now.date())
+
+    if schedule.empty:
+        return "closed"
+
+    market_open = schedule.iloc[0]["market_open"]
+    market_close = schedule.iloc[0]["market_close"]
+
+    if market_open <= now <= market_close:
+        return "open"
+    elif now < market_open:
+        return "pre_market"
+    else:
+        return "closed"
 
 
 # Helper to get latest price

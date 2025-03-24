@@ -5,16 +5,13 @@ import time
 from statistics import median
 
 import certifi
-from alpaca.data.historical.stock import StockHistoricalDataClient
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide
-from polygon import RESTClient
 from pymongo import MongoClient
 
 from config import (
     API_KEY,
     API_SECRET,
-    POLYGON_API_KEY,
     mongo_url,
 )
 from control import suggestion_heap_limit, trade_asset_limit, trade_liquidity_limit
@@ -93,9 +90,7 @@ def weighted_majority_decision_and_median_quantity(decisions_and_quantities):
         return "hold", 0, buy_weight, sell_weight, hold_weight
 
 
-def process_ticker(
-    ticker, client, trading_client, data_client, mongo_client, strategy_to_coefficient
-):
+def process_ticker(ticker, trading_client, mongo_client, strategy_to_coefficient):
     global buy_heap
     global suggestion_heap
     global sold
@@ -267,9 +262,7 @@ def main():
     ndaq_tickers = []
     early_hour_first_iteration = True
     post_hour_first_iteration = True
-    client = RESTClient(api_key=POLYGON_API_KEY)
     trading_client = TradingClient(API_KEY, API_SECRET)
-    data_client = StockHistoricalDataClient(API_KEY, API_SECRET)
     mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
     # db = mongo_client.trades
     # asset_collection = db.assets_quantities
@@ -277,10 +270,8 @@ def main():
     strategy_to_coefficient = {}
     sold = False
     while True:
-        client = RESTClient(api_key=POLYGON_API_KEY)
         trading_client = TradingClient(API_KEY, API_SECRET)
-        data_client = StockHistoricalDataClient(API_KEY, API_SECRET)
-        status = market_status(client)  # Use the helper function for market status
+        status = market_status()  # Use the helper function for market status
         # db = mongo_client.trades
         # asset_collection = db.assets_quantities
         # limits_collection = db.assets_limit
@@ -341,9 +332,7 @@ def main():
                     target=process_ticker,
                     args=(
                         ticker,
-                        client,
                         trading_client,
-                        data_client,
                         mongo_client,
                         strategy_to_coefficient,
                     ),
