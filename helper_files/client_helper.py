@@ -1,16 +1,14 @@
-import json
 import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.request import urlopen
 
+import pandas as pd
+import pandas_market_calendars as mcal
 import yfinance as yf
-from alpaca.trading.enums import OrderSide, TimeInForce
-from alpaca.trading.requests import MarketOrderRequest
+from ib_insync import MarketOrder, Stock
 from pymongo import MongoClient
 
-from control import stop_loss, take_profit
 from strategies.talib_indicators import (
     AD_indicator,
     ADOSC_indicator,
@@ -303,6 +301,11 @@ strategies = (
     + pattern_recognition
     + statistical_functions
 )
+# strategies = [
+#     MACD_indicator,
+#     MACDEXT_indicator,
+#     MACDFIX_indicator,
+# ]
 
 
 # MongoDB connection helper
@@ -311,46 +314,68 @@ def connect_to_mongo(mongo_url):
     return MongoClient(mongo_url)
 
 
-# Helper to place an order
-def place_order(trading_client, symbol, side, quantity, mongo_client):
+def place_order(ib, symbol, side, quantity, mongo_client):
     """
-    Place a market order and log the order to MongoDB.
+    Place a market order using IBKR's ib_insync and log the order to MongoDB.
 
-    :param trading_client: The Alpaca trading client instance
-    :param symbol: The stock symbol to trade
-    :param side: Order side (OrderSide.BUY or OrderSide.SELL)
-    :param qty: Quantity to trade
+    :param ib: A connected IB instance (from ib_insync)
+    :param symbol: The stock symbol to trade (e.g., 'AAPL')
+    :param side: Order side as a string ('BUY' or 'SELL')
+    :param quantity: Quantity to trade (as a float or int)
     :param mongo_client: MongoDB client instance
-    :return: Order result from Alpaca API
+    :return: Trade object from IBKR API
     """
+    # Create a contract for the stock (assumes SMART routing and USD)
+    contract = Stock(symbol, "SMART", "USD")
 
-    market_order_data = MarketOrderRequest(
-        symbol=symbol, qty=quantity, side=side, time_in_force=TimeInForce.DAY
-    )
-    order = trading_client.submit_order(market_order_data)
-    qty = round(quantity, 3)
-    current_price = get_latest_price(symbol)
-    stop_loss_price = round(current_price * (1 - stop_loss), 2)  # 3% loss
-    take_profit_price = round(current_price * (1 + take_profit), 2)  # 5% profit
+    # Create a market order with the given side and quantity
+    order = MarketOrder(side.upper(), quantity)
+
+    # Place the order and retrieve the trade object
+    trade = ib.placeOrder(contract, order)
+
+    # Wait a moment for the order to be processed.
+    # In production, consider using proper event handling or waiting for a status update.
+    ib.sleep(1)
+
+    # Determine the executed price from the trade fills.
+    # If multiple fills exist, compute the volume-weighted average price.
+    if trade.fills:
+        total_shares = sum(fill.execution.shares for fill in trade.fills)
+        executed_price = (
+            sum(fill.execution.price * fill.execution.shares for fill in trade.fills)
+            / total_shares
+        )
+    else:
+        raise Exception("Order was not filled; cannot retrieve execution price.")
+
+    # Define stop loss and take profit percentages (3% loss, 5% profit)
+    stop_loss_pct = 0.03
+    take_profit_pct = 0.05
+    stop_loss_price = round(executed_price * (1 - stop_loss_pct), 2)
+    take_profit_price = round(executed_price * (1 + take_profit_pct), 2)
 
     # Log trade details to MongoDB
     db = mongo_client.trades
     db.paper.insert_one(
         {
             "symbol": symbol,
-            "qty": qty,
-            "side": side.name,
-            "time_in_force": TimeInForce.DAY.name,
+            "qty": round(quantity, 3),
+            "side": side.upper(),
+            "order_type": "MARKET",
+            "executed_price": executed_price,
             "time": datetime.now(tz=timezone.utc),
         }
     )
 
-    # Track assets as well
+    # Track asset quantities and stop/take profit limits in MongoDB
     assets = db.assets_quantities
     limits = db.assets_limit
 
-    if side == OrderSide.BUY:
-        assets.update_one({"symbol": symbol}, {"$inc": {"quantity": qty}}, upsert=True)
+    if side.upper() == "BUY":
+        assets.update_one(
+            {"symbol": symbol}, {"$inc": {"quantity": round(quantity, 3)}}, upsert=True
+        )
         limits.update_one(
             {"symbol": symbol},
             {
@@ -361,90 +386,43 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
             },
             upsert=True,
         )
-    elif side == OrderSide.SELL:
-        assets.update_one({"symbol": symbol}, {"$inc": {"quantity": -qty}}, upsert=True)
-        if assets.find_one({"symbol": symbol})["quantity"] == 0:
+    elif side.upper() == "SELL":
+        assets.update_one(
+            {"symbol": symbol}, {"$inc": {"quantity": -round(quantity, 3)}}, upsert=True
+        )
+        asset = assets.find_one({"symbol": symbol})
+        if asset and asset.get("quantity", 0) == 0:
             assets.delete_one({"symbol": symbol})
             limits.delete_one({"symbol": symbol})
 
-    return order
+    return trade
 
 
-# Helper to retrieve NASDAQ-100 tickers from MongoDB
-def get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY):
-    """
-    Connects to MongoDB and retrieves NASDAQ-100 tickers.
-
-    :param mongo_url: MongoDB connection URL
-    :return: List of NASDAQ-100 ticker symbols.
-    """
-
-    def call_ndaq_100():
-        """
-        Fetches the list of NASDAQ 100 tickers using the Financial Modeling Prep API and stores it in a MongoDB collection.
-        The MongoDB collection is cleared before inserting the updated list of tickers.
-        """
-        logging.info("Calling NASDAQ 100 to retrieve tickers.")
-
-        def get_jsonparsed_data(url):
-            """
-            Parses the JSON response from the provided URL.
-
-            :param url: The API endpoint to retrieve data from.
-            :return: Parsed JSON data as a dictionary.
-            """
-            response = urlopen(url)
-            data = response.read().decode("utf-8")
-            return json.loads(data)
-
-        try:
-            # API URL for fetching NASDAQ 100 tickers
-            ndaq_url = f"https://financialmodelingprep.com/api/v3/nasdaq_constituent?apikey={FINANCIAL_PREP_API_KEY}"  # noqa: E231
-            ndaq_stocks = get_jsonparsed_data(ndaq_url)
-            logging.info("Successfully retrieved NASDAQ 100 tickers.")
-        except Exception as e:
-            logging.error(f"Error fetching NASDAQ 100 tickers: {e}")
-            return
-        try:
-            # MongoDB connection details
-
-            db = mongo_client.stock_list
-            ndaq100_tickers = db.ndaq100_tickers
-
-            ndaq100_tickers.delete_many({})  # Clear existing data
-            ndaq100_tickers.insert_many(ndaq_stocks)  # Insert new data
-            logging.info("Successfully inserted NASDAQ 100 tickers into MongoDB.")
-        except Exception as e:
-            logging.error(f"Error inserting tickers into MongoDB: {e}")
-
-    call_ndaq_100()
-
-    tickers = [
-        stock["symbol"] for stock in mongo_client.stock_list.ndaq100_tickers.find()
-    ]
-
-    return tickers
+def get_ndaq_tickers():
+    url = "https://en.wikipedia.org/wiki/NASDAQ-100"
+    tables = pd.read_html(url)
+    df = tables[4]  # NASDAQ-100 companies table
+    return df["Ticker"].tolist()
 
 
-# Market status checker helper
-def market_status(polygon_client):
-    """
-    Check market status using the Polygon API.
+def market_status():
+    nasdaq = mcal.get_calendar("NASDAQ")
+    now = pd.Timestamp.utcnow()
 
-    :param polygon_client: An instance of the Polygon RESTClient
-    :return: Current market status ('open', 'early_hours', 'closed')
-    """
-    try:
-        status = polygon_client.get_market_status()
-        if status.exchanges.nasdaq == "open" and status.exchanges.nyse == "open":
-            return "open"
-        elif status.early_hours:
-            return "early_hours"
-        else:
-            return "closed"
-    except Exception as e:
-        logging.error(f"Error retrieving market status: {e}")
-        return "error"
+    schedule = nasdaq.schedule(start_date=now.date(), end_date=now.date())
+
+    if schedule.empty:
+        return "closed"
+
+    market_open = schedule.iloc[0]["market_open"]
+    market_close = schedule.iloc[0]["market_close"]
+
+    if market_open <= now <= market_close:
+        return "open"
+    elif now < market_open:
+        return "pre_market"
+    else:
+        return "closed"
 
 
 # Helper to get latest price

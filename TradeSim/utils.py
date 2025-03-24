@@ -34,7 +34,6 @@ def initialize_simulation(
     period_end,
     train_tickers,
     mongo_client,
-    FINANCIAL_PREP_API_KEY,
     logger,
 ):
     """
@@ -74,7 +73,7 @@ def initialize_simulation(
     # If no tickers provided, fetch Nasdaq tickers
     if not train_tickers:
         logger.info("No tickers provided. Fetching Nasdaq tickers...")
-        train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+        train_tickers = get_ndaq_tickers()
         logger.info(f"Fetched {len(train_tickers)} tickers.")
 
     # Determine the historical data start date (2 years before period_start)
