@@ -1,11 +1,22 @@
 import math
 from datetime import datetime
-
-from alpaca.trading.client import TradingClient
+import asyncio
 from pymongo import MongoClient, errors
+from ib_insync import IB
+from config import mongo_url
 
-from config import API_KEY, API_SECRET, mongo_url
 from helper_files.client_helper import get_latest_price, strategies
+
+def get_ib():
+    # Create and set a new event loop for this thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    # Create IB instance and connect using a unique clientId
+    ib = IB()
+    # cid = next(client_id_counter)  # Use a unique client id for each connection
+    ib.connect("127.0.0.1", 4002, clientId=1)
+    return ib
 
 indicator_periods = {
     "BBANDS_indicator": "1y",
@@ -235,11 +246,13 @@ def initialize_market_setup():
 def initialize_portfolio_percentages():
     try:
         client = MongoClient(mongo_url)
-        trading_client = TradingClient(API_KEY, API_SECRET)
-        account = trading_client.get_account()
+        ib = get_ib()
+        account_summary = ib.accountSummary()
+
         db = client.trades
         collection = db.portfolio_values
-        portfolio_value = float(account.portfolio_value)
+        portfolio_value = next(
+        (item for item in account_summary if item.tag == "NetLiquidation"), None)
         collection.insert_one(
             {
                 "name": "portfolio_percentage",

@@ -3,6 +3,7 @@ import os
 import sys
 
 import certifi
+import wandb
 from push import push
 
 # from push import push
@@ -11,10 +12,8 @@ from testing import test
 from training import train
 from variables import config_dict
 
-import wandb
-
 # Local module imports after standard/third-party imports
-from config import FINANCIAL_PREP_API_KEY, mongo_url
+from config import mongo_url
 from control import mode, test_period_end, train_period_start, train_tickers
 from helper_files.client_helper import get_ndaq_tickers, strategies
 from TradeSim.utils import initialize_simulation, precompute_strategy_decisions
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     # If no tickers provided, fetch Nasdaq tickers
     if not train_tickers:
         logger.info("No tickers provided. Fetching Nasdaq tickers...")
-        train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+        train_tickers = get_ndaq_tickers()
         logger.info(f"Fetched {len(train_tickers)} tickers.")
 
     ticker_price_history, ideal_period = initialize_simulation(
@@ -63,10 +62,8 @@ if __name__ == "__main__":
         test_period_end,
         train_tickers,
         mongo_client,
-        FINANCIAL_PREP_API_KEY,
         logger,
     )
-
     # Precompute all strategy decisions
     precomputed_decisions = precompute_strategy_decisions(
         strategies,
@@ -81,8 +78,6 @@ if __name__ == "__main__":
     if mode == "train":
         train(
             ticker_price_history,
-            ideal_period,
-            mongo_client,
             precomputed_decisions,
             logger,
         )

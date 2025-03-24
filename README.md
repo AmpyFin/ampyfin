@@ -1,12 +1,12 @@
 ﻿# AmpyFin Trading System
 
-| Category | Badges |
-|----------|--------|
-| **Project** | [![Team Size](https://img.shields.io/badge/Team%20Size-6-blue)](https://github.com/yeonholee50/AmpyFin/graphs/contributors) [![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen)](https://github.com/yeonholee50/AmpyFin) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com) |
-| **CI/CD** | [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yeonholee50/AmpyFin/pre-commit.yml?branch=main&label=linting)](https://github.com/yeonholee50/AmpyFin/actions/workflows/pre-commit.yml) |
-| **Quality** | [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Quality Gate Status](https://img.shields.io/badge/Quality%20Gate-Passing-success)](https://github.com/yeonholee50/AmpyFin) |
-| **Package** | [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/) |
-| **Meta** | [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) |
+| Category    | Badges                                                                                                                                                                                                                                                                                                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Project** | [![Team Size](https://img.shields.io/badge/Team%20Size-6-blue)](https://github.com/yeonholee50/AmpyFin/graphs/contributors) [![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen)](https://github.com/yeonholee50/AmpyFin) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)         |
+| **CI/CD**   | [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yeonholee50/AmpyFin/pre-commit.yml?branch=main&label=linting)](https://github.com/yeonholee50/AmpyFin/actions/workflows/pre-commit.yml) |
+| **Quality** | [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Quality Gate Status](https://img.shields.io/badge/Quality%20Gate-Passing-success)](https://github.com/yeonholee50/AmpyFin)                                                                                                                   |
+| **Package** | [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)                                                                                                                                                                                                                                                           |
+| **Meta**    | [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)                                                                                                                                                                                                                                                      |
 
 ## Introduction
 
@@ -32,8 +32,6 @@ For a comprehensive guide on how to use AmpyFin, check out our [YouTube tutorial
 ### Data Collection
 
 - **yfinance**: Primary source for historical price data and technical indicators
-- **Financial Modeling Prep API**: Retrieves NASDAQ-100 tickers for market insights
-- **Polygon API**: Alternative source for real-time market data if needed
 
 ### Data Storage
 
@@ -58,15 +56,15 @@ Each strategy is evaluated based on performance metrics and assigned a weight us
 
 ### Core Components
 
-| Component | Description |
-|-----------|-------------|
-| `control.py` | Configuration interface for trading parameters |
-| `trading_client.py` | Executes trades based on algorithmic decisions |
-| `ranking_client.py` | Evaluates and ranks trading strategies |
-| `TradeSim/main.py` | Training and testing environment for strategies |
-| `strategies/*` | Implementation of various trading algorithms |
-| `helper_files/*` | Utility functions for client operations |
-| `utils/*` | General utility functions for data processing |
+| Component           | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `control.py`        | Configuration interface for trading parameters  |
+| `trading_client.py` | Executes trades based on algorithmic decisions  |
+| `ranking_client.py` | Evaluates and ranks trading strategies          |
+| `TradeSim/main.py`  | Training and testing environment for strategies |
+| `strategies/*`      | Implementation of various trading algorithms    |
+| `helper_files/*`    | Utility functions for client operations         |
+| `utils/*`           | General utility functions for data processing   |
 
 ## Installation
 
@@ -94,41 +92,37 @@ pip install -r requirements.txt
 3. **Install TA-Lib**
 
 TA-Lib is required for technical indicators. Installation options:
+
 - [TA-Lib Python Original](https://github.com/TA-Lib/ta-lib-python)
 - [TA-Lib Python Easy Installation](https://github.com/cgohlke/talib-build/releases)
 
-4. **Configure API keys**
+4. **Install IBKR**
+
+- [IBKR setup - Follow first 5 minutes of this video](https://www.youtube.com/watch?v=_AASJZyNcXQ&list=PLCZZtBmmgxn8CFKysCkcl-B1tqRgCCNIX)
+- Make sure to uncheck the Read Only API if you want to place orders on paper trading account.
+- Also please set the PORT to 4002
+
+5. **Configure API keys**
 
 You need to sign up for the following services to obtain API keys:
 
-- [Polygon.io](https://polygon.io/) - For market data
-- [Financial Modeling Prep](https://financialmodelingprep.com/) - For financial data
-- [Alpaca](https://alpaca.markets/) - For trading execution
 - [Weights & Biases](https://wandb.ai/) - For experiment tracking
 
 Create a `config.py` file based on the template:
 
 ```python
-POLYGON_API_KEY = "your_polygon_api_key"
-FINANCIAL_PREP_API_KEY = "your_fmp_api_key"
 MONGO_DB_USER = "your_mongo_user"
 MONGO_DB_PASS = "your_mongo_password"
-API_KEY = "your_alpaca_api_key"
-API_SECRET = "your_alpaca_secret_key"
-BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading (safe for testing)
-# BASE_URL = "https://api.alpaca.markets"      # Live trading (uses real money)
 mongo_url = "your_mongo_connection_string"
 ```
 
-> ⚠️ **IMPORTANT**: The default configuration uses Alpaca's paper trading environment. To switch to live trading (using real money), change the BASE_URL to "https://api.alpaca.markets". Only do this once you've thoroughly tested your strategies and understand the risks involved.
-
-5. **Set up MongoDB**
+6. **Set up MongoDB**
 
 - Create a MongoDB cluster (e.g., via MongoDB Atlas)
 - Configure network access for your IP address
 - Update the connection string in `config.py`
 
-6. **Run the setup script**
+7. **Run the setup script**
 
 ```bash
 python setup.py
@@ -160,11 +154,13 @@ These are separate operations that can be performed with the TradeSim module:
 #### Training
 
 1. Set the mode in `control.py`:
+
 ```python
 mode = 'train'
 ```
 
 2. Run the training module:
+
 ```bash
 python TradeSim/main.py
 ```
@@ -172,11 +168,13 @@ python TradeSim/main.py
 #### Testing
 
 1. Set the mode in `control.py`:
+
 ```python
 mode = 'test'
 ```
 
 2. Run the testing module:
+
 ```bash
 python TradeSim/main.py
 ```
@@ -184,11 +182,13 @@ python TradeSim/main.py
 ### Deploying a Model
 
 1. Set the mode in `control.py`:
+
 ```python
 mode = 'push'
 ```
 
 2. Push your model to MongoDB:
+
 ```bash
 python TradeSim/main.py
 ```
@@ -196,6 +196,7 @@ python TradeSim/main.py
 ## Important Notes
 
 For live trading, it's recommended to:
+
 1. Train the system by running `ranking_client.py` for at least two weeks, or
 2. Train using the TradeSim module and push changes to MongoDB before executing trades
 

@@ -7,7 +7,7 @@ from datetime import datetime
 import certifi
 from pymongo import MongoClient
 
-from config import FINANCIAL_PREP_API_KEY, mongo_url
+from config import mongo_url
 from control import (
     loss_price_change_ratio_d1,
     loss_price_change_ratio_d2,
@@ -337,7 +337,6 @@ def update_ranks(client):
     """
     based on portfolio values, rank the strategies to use for actual trading_simulator
     """
-
     db = client.trading_simulator
     points_collection = db.points_tally
     rank_collection = db.rank
@@ -418,10 +417,10 @@ def main():
             # We can use ThreadPoolExecutor to manage threads - maybe use this but this risks clogging
             # resources if we have too many threads or if a thread is on stall mode
             # We can also use multiprocessing.Pool to manage threads
-
+            update_ranks(mongo_client)
             if not ndaq_tickers:
                 logging.info("Market is open. Processing strategies.")
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
 
             threads = []
 
@@ -444,7 +443,7 @@ def main():
             # However, we should add more features here like premarket analysis
 
             if early_hour_first_iteration is True:
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
                 early_hour_first_iteration = False
                 post_market_hour_first_iteration = True
                 logging.info("Market is in early hours. Waiting for 30 seconds.")
