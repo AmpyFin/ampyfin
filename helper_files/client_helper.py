@@ -1,11 +1,9 @@
-import json
 import logging
-import pandas as pd
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.request import urlopen
 
+import pandas as pd
 import yfinance as yf
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.trading.requests import MarketOrderRequest
@@ -370,11 +368,13 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
 
     return order
 
+
 def get_ndaq_tickers():
     url = "https://en.wikipedia.org/wiki/NASDAQ-100"
     tables = pd.read_html(url)
     df = tables[4]  # NASDAQ-100 companies table
     return df["Ticker"].tolist()
+
 
 # Market status checker helper
 def market_status(polygon_client):

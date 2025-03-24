@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 
 import certifi
 import pandas as pd
+import wandb
 from pymongo import MongoClient
 from variables import config_dict
 
-import wandb
 from config import mongo_url
 from control import (
     benchmark_asset,

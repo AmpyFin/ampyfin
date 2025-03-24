@@ -25,7 +25,6 @@ While there are many theoretical trading models in academic literature, AmpyFin 
 ### Data Collection
 
 - **yfinance**: Primary source for historical price data and technical indicators
-- **Financial Modeling Prep API**: Retrieves NASDAQ-100 tickers for market insights
 - **Polygon API**: Alternative source for real-time market data if needed
 
 ### Data Storage
@@ -95,7 +94,6 @@ TA-Lib is required for technical indicators. Installation options:
 You need to sign up for the following services to obtain API keys:
 
 - [Polygon.io](https://polygon.io/) - For market data
-- [Financial Modeling Prep](https://financialmodelingprep.com/) - For financial data
 - [Alpaca](https://alpaca.markets/) - For trading execution
 - [Weights & Biases](https://wandb.ai/) - For experiment tracking
 
@@ -103,7 +101,6 @@ Create a `config.py` file based on the template:
 
 ```python
 POLYGON_API_KEY = "your_polygon_api_key"
-FINANCIAL_PREP_API_KEY = "your_fmp_api_key"
 MONGO_DB_USER = "your_mongo_user"
 MONGO_DB_PASS = "your_mongo_password"
 API_KEY = "your_alpaca_api_key"

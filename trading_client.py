@@ -14,7 +14,6 @@ from pymongo import MongoClient
 from config import (
     API_KEY,
     API_SECRET,
-    FINANCIAL_PREP_API_KEY,
     POLYGON_API_KEY,
     mongo_url,
 )

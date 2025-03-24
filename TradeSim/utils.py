@@ -34,7 +34,6 @@ def initialize_simulation(
     period_end,
     train_tickers,
     mongo_client,
-    FINANCIAL_PREP_API_KEY,
     logger,
 ):
     """

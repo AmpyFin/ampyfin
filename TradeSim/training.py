@@ -5,9 +5,8 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-from variables import config_dict
-
 import wandb
+from variables import config_dict
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
