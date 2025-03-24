@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # If no tickers provided, fetch Nasdaq tickers
     if not train_tickers:
         logger.info("No tickers provided. Fetching Nasdaq tickers...")
-        train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+        train_tickers = get_ndaq_tickers()
         logger.info(f"Fetched {len(train_tickers)} tickers.")
 
     ticker_price_history, ideal_period = initialize_simulation(

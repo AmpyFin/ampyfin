@@ -45,7 +45,7 @@ The default for mode is live to protect against accidental training
 benchmark asset is what benchmark you want to compare to - typically SPY, QQQ, DOW, or NDAQ.
 """
 
-mode = "live"
+mode = "test"
 
 benchmark_asset = "QQQ"
 """

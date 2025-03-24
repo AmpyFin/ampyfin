@@ -421,7 +421,7 @@ def main():
 
             if not ndaq_tickers:
                 logging.info("Market is open. Processing strategies.")
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
 
             threads = []
 
@@ -444,7 +444,7 @@ def main():
             # However, we should add more features here like premarket analysis
 
             if early_hour_first_iteration is True:
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
                 early_hour_first_iteration = False
                 post_market_hour_first_iteration = True
                 logging.info("Market is in early hours. Waiting for 30 seconds.")

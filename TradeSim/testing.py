@@ -10,7 +10,7 @@ from pymongo import MongoClient
 from variables import config_dict
 
 import wandb
-from config import FINANCIAL_PREP_API_KEY, mongo_url
+from config import mongo_url
 from control import (
     benchmark_asset,
     test_period_end,
@@ -199,7 +199,7 @@ def test(
     account_values = pd.Series(index=pd.date_range(start=start_date, end=end_date))
     logger.info(f"Testing period: {start_date} to {end_date}")
     if not train_tickers:
-        train_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+        train_tickers = get_ndaq_tickers()
     while current_date <= end_date:
         logger.info(f"Processing date: {current_date.strftime('%Y-%m-%d')}")
 

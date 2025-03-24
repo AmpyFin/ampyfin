@@ -295,7 +295,7 @@ def main():
         if status == "open":
             if not ndaq_tickers:
                 logging.info("Market is open")
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
                 sim_db = mongo_client.trading_simulator
                 rank_collection = sim_db.rank
                 r_t_c_collection = sim_db.rank_to_coefficient
@@ -416,7 +416,7 @@ def main():
 
         elif status == "early_hours":
             if early_hour_first_iteration:
-                ndaq_tickers = get_ndaq_tickers(mongo_client, FINANCIAL_PREP_API_KEY)
+                ndaq_tickers = get_ndaq_tickers()
                 sim_db = mongo_client.trading_simulator
                 rank_collection = sim_db.rank
                 r_t_c_collection = sim_db.rank_to_coefficient
