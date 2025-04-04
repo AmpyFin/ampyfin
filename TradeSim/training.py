@@ -29,9 +29,7 @@ if not os.path.exists(results_dir):
     os.makedirs(results_dir)
 
 
-def train(
-    ticker_price_history, ideal_period, mongo_client, precomputed_decisions, logger
-):
+def train(ticker_price_history, precomputed_decisions, logger):
     """
     get from ndaq100
     """

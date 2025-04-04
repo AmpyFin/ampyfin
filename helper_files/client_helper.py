@@ -6,11 +6,9 @@ from pathlib import Path
 import pandas as pd
 import pandas_market_calendars as mcal
 import yfinance as yf
-from alpaca.trading.enums import OrderSide, TimeInForce
-from alpaca.trading.requests import MarketOrderRequest
+from ib_insync import MarketOrder, Stock
 from pymongo import MongoClient
 
-from control import stop_loss, take_profit
 from strategies.talib_indicators import (
     AD_indicator,
     ADOSC_indicator,
@@ -293,16 +291,21 @@ statistical_functions = [
     VAR_indicator,
 ]
 
-strategies = (
-    overlap_studies
-    + momentum_indicators
-    + volume_indicators
-    + cycle_indicators
-    + price_transforms
-    + volatility_indicators
-    + pattern_recognition
-    + statistical_functions
-)
+# strategies = (
+#     overlap_studies
+#     + momentum_indicators
+#     + volume_indicators
+#     + cycle_indicators
+#     + price_transforms
+#     + volatility_indicators
+#     + pattern_recognition
+#     + statistical_functions
+# )
+strategies = [
+    MACD_indicator,
+    MACDEXT_indicator,
+    MACDFIX_indicator,
+]
 
 
 # MongoDB connection helper
@@ -311,46 +314,68 @@ def connect_to_mongo(mongo_url):
     return MongoClient(mongo_url)
 
 
-# Helper to place an order
-def place_order(trading_client, symbol, side, quantity, mongo_client):
+def place_order(ib, symbol, side, quantity, mongo_client):
     """
-    Place a market order and log the order to MongoDB.
+    Place a market order using IBKR's ib_insync and log the order to MongoDB.
 
-    :param trading_client: The Alpaca trading client instance
-    :param symbol: The stock symbol to trade
-    :param side: Order side (OrderSide.BUY or OrderSide.SELL)
-    :param qty: Quantity to trade
+    :param ib: A connected IB instance (from ib_insync)
+    :param symbol: The stock symbol to trade (e.g., 'AAPL')
+    :param side: Order side as a string ('BUY' or 'SELL')
+    :param quantity: Quantity to trade (as a float or int)
     :param mongo_client: MongoDB client instance
-    :return: Order result from Alpaca API
+    :return: Trade object from IBKR API
     """
+    # Create a contract for the stock (assumes SMART routing and USD)
+    contract = Stock(symbol, "SMART", "USD")
 
-    market_order_data = MarketOrderRequest(
-        symbol=symbol, qty=quantity, side=side, time_in_force=TimeInForce.DAY
-    )
-    order = trading_client.submit_order(market_order_data)
-    qty = round(quantity, 3)
-    current_price = get_latest_price(symbol)
-    stop_loss_price = round(current_price * (1 - stop_loss), 2)  # 3% loss
-    take_profit_price = round(current_price * (1 + take_profit), 2)  # 5% profit
+    # Create a market order with the given side and quantity
+    order = MarketOrder(side.upper(), quantity)
+
+    # Place the order and retrieve the trade object
+    trade = ib.placeOrder(contract, order)
+
+    # Wait a moment for the order to be processed.
+    # In production, consider using proper event handling or waiting for a status update.
+    ib.sleep(1)
+
+    # Determine the executed price from the trade fills.
+    # If multiple fills exist, compute the volume-weighted average price.
+    if trade.fills:
+        total_shares = sum(fill.execution.shares for fill in trade.fills)
+        executed_price = (
+            sum(fill.execution.price * fill.execution.shares for fill in trade.fills)
+            / total_shares
+        )
+    else:
+        raise Exception("Order was not filled; cannot retrieve execution price.")
+
+    # Define stop loss and take profit percentages (3% loss, 5% profit)
+    stop_loss_pct = 0.03
+    take_profit_pct = 0.05
+    stop_loss_price = round(executed_price * (1 - stop_loss_pct), 2)
+    take_profit_price = round(executed_price * (1 + take_profit_pct), 2)
 
     # Log trade details to MongoDB
     db = mongo_client.trades
     db.paper.insert_one(
         {
             "symbol": symbol,
-            "qty": qty,
-            "side": side.name,
-            "time_in_force": TimeInForce.DAY.name,
+            "qty": round(quantity, 3),
+            "side": side.upper(),
+            "order_type": "MARKET",
+            "executed_price": executed_price,
             "time": datetime.now(tz=timezone.utc),
         }
     )
 
-    # Track assets as well
+    # Track asset quantities and stop/take profit limits in MongoDB
     assets = db.assets_quantities
     limits = db.assets_limit
 
-    if side == OrderSide.BUY:
-        assets.update_one({"symbol": symbol}, {"$inc": {"quantity": qty}}, upsert=True)
+    if side.upper() == "BUY":
+        assets.update_one(
+            {"symbol": symbol}, {"$inc": {"quantity": round(quantity, 3)}}, upsert=True
+        )
         limits.update_one(
             {"symbol": symbol},
             {
@@ -361,13 +386,16 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
             },
             upsert=True,
         )
-    elif side == OrderSide.SELL:
-        assets.update_one({"symbol": symbol}, {"$inc": {"quantity": -qty}}, upsert=True)
-        if assets.find_one({"symbol": symbol})["quantity"] == 0:
+    elif side.upper() == "SELL":
+        assets.update_one(
+            {"symbol": symbol}, {"$inc": {"quantity": -round(quantity, 3)}}, upsert=True
+        )
+        asset = assets.find_one({"symbol": symbol})
+        if asset and asset.get("quantity", 0) == 0:
             assets.delete_one({"symbol": symbol})
             limits.delete_one({"symbol": symbol})
 
-    return order
+    return trade
 
 
 def get_ndaq_tickers():

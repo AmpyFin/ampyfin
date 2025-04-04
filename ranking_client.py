@@ -337,7 +337,7 @@ def update_ranks(client):
     """
     based on portfolio values, rank the strategies to use for actual trading_simulator
     """
-
+    print("UPDATING RANKS")
     db = client.trading_simulator
     points_collection = db.points_tally
     rank_collection = db.rank
@@ -418,7 +418,7 @@ def main():
             # We can use ThreadPoolExecutor to manage threads - maybe use this but this risks clogging
             # resources if we have too many threads or if a thread is on stall mode
             # We can also use multiprocessing.Pool to manage threads
-
+            update_ranks(mongo_client)
             if not ndaq_tickers:
                 logging.info("Market is open. Processing strategies.")
                 ndaq_tickers = get_ndaq_tickers()

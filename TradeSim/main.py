@@ -64,7 +64,7 @@ if __name__ == "__main__":
         mongo_client,
         logger,
     )
-
+    print(strategies)
     # Precompute all strategy decisions
     precomputed_decisions = precompute_strategy_decisions(
         strategies,
@@ -79,8 +79,6 @@ if __name__ == "__main__":
     if mode == "train":
         train(
             ticker_price_history,
-            ideal_period,
-            mongo_client,
             precomputed_decisions,
             logger,
         )
