@@ -24,3 +24,5 @@ flake8==7.1.2
 sphinx
 sphinx-rtd-theme
 pandas_market_calendars
+ib_insync
+ib_async

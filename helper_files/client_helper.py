@@ -291,21 +291,21 @@ statistical_functions = [
     VAR_indicator,
 ]
 
-# strategies = (
-#     overlap_studies
-#     + momentum_indicators
-#     + volume_indicators
-#     + cycle_indicators
-#     + price_transforms
-#     + volatility_indicators
-#     + pattern_recognition
-#     + statistical_functions
-# )
-strategies = [
-    MACD_indicator,
-    MACDEXT_indicator,
-    MACDFIX_indicator,
-]
+strategies = (
+    overlap_studies
+    + momentum_indicators
+    + volume_indicators
+    + cycle_indicators
+    + price_transforms
+    + volatility_indicators
+    + pattern_recognition
+    + statistical_functions
+)
+# strategies = [
+#     MACD_indicator,
+#     MACDEXT_indicator,
+#     MACDFIX_indicator,
+# ]
 
 
 # MongoDB connection helper
