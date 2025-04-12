@@ -41,7 +41,7 @@ ca = certifi.where()
 #     format='%(asctime)s - %(levelname)s - %(message)s',
 #     datefmt='%Y-%m-%d %H:%M:%S',
 #     handlers=[
-#         logging.FileHandler('system.log'),  # Log messages to a file
+#         logging.FileHandler('log/system.log'),  # Log messages to a file
 #         logging.StreamHandler()             # Log messages to the console
 #     ]
 # )

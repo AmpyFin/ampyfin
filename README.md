@@ -203,8 +203,8 @@ This ensures the system has properly ranked strategies before making investment 
 
 ## Logging
 
-- `system.log`: Tracks major system events and errors
-- `rank_system.log`: Records ranking-related events and updates
+- `log/system.log`: Tracks major system events and errors
+- `log/rank_system.log`: Records ranking-related events and updates
 
 ## Contributing
 
