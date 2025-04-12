@@ -1,10 +1,10 @@
-config.py
+# Ignore all environment files.
+/.env*
 
 # Ignore all logfiles.
 /log/*
 !/log/.keep
 
-.env
 .vscode/
 **/__pycache__/
 *.json

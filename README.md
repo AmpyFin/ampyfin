@@ -106,19 +106,17 @@ You need to sign up for the following services to obtain API keys:
 - [Alpaca](https://alpaca.markets/) - For trading execution
 - [Weights & Biases](https://wandb.ai/) - For experiment tracking
 
-Create a `config.py` file based on the template:
+Create a `.env` file based on the template:
 
 ```python
 POLYGON_API_KEY = "your_polygon_api_key"
 FINANCIAL_PREP_API_KEY = "your_fmp_api_key"
-MONGO_DB_USER = "your_mongo_user"
-MONGO_DB_PASS = "your_mongo_password"
 API_KEY = "your_alpaca_api_key"
 API_SECRET = "your_alpaca_secret_key"
 BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading (safe for testing)
 # BASE_URL = "https://api.alpaca.markets"      # Live trading (uses real money)
 WANDB_API_KEY = "your_wandb_api_key"
-mongo_url = "your_mongo_connection_string"
+MONGO_URL = "your_mongo_connection_string"
 ```
 
 > ⚠️ **IMPORTANT**: The default configuration uses Alpaca's paper trading environment. To switch to live trading (using real money), change the BASE_URL to "https://api.alpaca.markets". Only do this once you've thoroughly tested your strategies and understand the risks involved.
@@ -127,7 +125,7 @@ mongo_url = "your_mongo_connection_string"
 
 - Create a MongoDB cluster (e.g., via MongoDB Atlas)
 - Configure network access for your IP address
-- Update the connection string in `config.py`
+- Update the connection string in `.env`
 
 6. **Run the setup script**
 
