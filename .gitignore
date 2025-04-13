@@ -6,3 +6,7 @@ config.py
 *.json
 **/.DS_Store
 .qodo
+
+# Ignore all wandb experiment data.
+/wandb/*
+!/wandb/.keep

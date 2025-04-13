@@ -117,6 +117,7 @@ API_KEY = "your_alpaca_api_key"
 API_SECRET = "your_alpaca_secret_key"
 BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading (safe for testing)
 # BASE_URL = "https://api.alpaca.markets"      # Live trading (uses real money)
+WANDB_API_KEY = "your_wandb_api_key"
 mongo_url = "your_mongo_connection_string"
 ```
 
@@ -135,12 +136,6 @@ python setup.py
 ```
 
 This initializes the database structure required for AmpyFin.
-
-7. **Set up Weights & Biases**
-
-```bash
-wandb login 'wandb_api_key'
-```
 
 ## Usage
 

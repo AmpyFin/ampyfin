@@ -46,6 +46,7 @@ if __name__ == "__main__":
     mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
 
     # Initialize W&B run
+    wandb.login()
     wandb.init(
         project=config_dict["project_name"],
         config=config_dict,
