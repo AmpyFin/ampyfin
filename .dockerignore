@@ -1,0 +1,39 @@
+# Ignore git directory.
+/.git/
+/.gitignore
+
+# Byte-compiled files.
+**/__pycache__/
+
+# Ignore all environment files.
+/.env*
+/.venv
+
+# Ignore all logfiles.
+/log/*
+!/log/.keep
+
+# Ignore all wandb experiment data.
+/wandb/*
+!/wandb/.keep
+
+# Ignore CI service files.
+/.github
+
+# Ignore development files
+/.devcontainer
+/.isort.cfg
+/.pre-commit-config.yaml
+/logo.png
+/CODE_OF_CONDUCT.md
+/CONTRIBUTING.md
+/README.md
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*
+
+# Ignore IDE files
+/.idea
+/.vscode
+**/.DS_Store

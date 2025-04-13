@@ -25,7 +25,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ca = certifi.where()
 
 # Set up logging
-logs_dir = "logs"
+logs_dir = "log"
 # Create the directory if it doesn't exist
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
