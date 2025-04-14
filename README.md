@@ -208,30 +208,7 @@ This ensures the system has properly ranked strategies before making investment 
 
 ## Contributing
 
-Contributions are welcome! Please submit pull requests or report issues. All contributions should be made to the **test branch**. Direct commits to the **main branch** are not accepted.
-
-### Pre-commit Hooks
-
-This project uses pre-commit hooks to ensure code quality. Before pushing your changes, please run pre-commit locally:
-
-1. Install pre-commit if you haven't already:
-```bash
-pip install pre-commit
-```
-
-2. Install the git hooks:
-```bash
-pre-commit install
-```
-
-3. Run pre-commit on all files:
-```bash
-pre-commit run --all-files
-```
-
-4. Fix any issues identified by the pre-commit hooks before pushing your changes.
-
-Running pre-commit locally will make the PR process smoother and reduce the need for revision requests.
+Contributions are welcome! Please review the [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
