@@ -149,16 +149,19 @@ def insert_rank_to_coefficient(i):
         db = client.trading_simulator
         collections = db.rank_to_coefficient
         """
-      clear all collections entry first and then insert from 1 to i
-      """
-        collections.delete_many({})
+        Upsert rank coefficients from 1 to i
+        """
         for i in range(1, i + 1):
             e = math.e
             rate = (e**e) / (e**2) - 1
             coefficient = rate ** (2 * i)
-            collections.insert_one({"rank": i, "coefficient": coefficient})
+            collections.update_one(
+                {"rank": i},
+                {"$set": {"coefficient": coefficient}},
+                upsert=True,
+            )
         client.close()
-        print("Successfully inserted rank to coefficient")
+        print("Successfully ensured rank to coefficient mapping")
     except Exception as exception:
         print(exception)
 
@@ -167,7 +170,6 @@ def initialize_rank():
     try:
         client = MongoClient(mongo_url)
         db = client.trading_simulator
-        collections = db.algorithm_holdings
 
         initialization_date = datetime.now()
 
@@ -213,7 +215,11 @@ def initialize_time_delta():
         client = MongoClient(mongo_url)
         db = client.trading_simulator
         collection = db.time_delta
-        collection.insert_one({"time_delta": 0.01})
+        collection.update_one(
+            {"_id": "time_delta_config"},
+            {"$setOnInsert": {"time_delta": 0.01}},
+            upsert=True,
+        )
         client.close()
         print("Successfully initialized time delta")
     except Exception as exception:
@@ -225,7 +231,11 @@ def initialize_market_setup():
         client = MongoClient(mongo_url)
         db = client.market_data
         collection = db.market_status
-        collection.insert_one({"market_status": "closed"})
+        collection.update_one(
+            {"_id": "market_status_config"},
+            {"$setOnInsert": {"market_status": "closed"}},
+            upsert=True,
+        )
         client.close()
         print("Successfully initialized market setup")
     except Exception as exception:
@@ -239,25 +249,28 @@ def initialize_portfolio_percentages():
         account = trading_client.get_account()
         db = client.trades
         collection = db.portfolio_values
+
         portfolio_value = float(account.portfolio_value)
-        collection.insert_one(
-            {
-                "name": "portfolio_percentage",
-                "portfolio_value": (portfolio_value - 50000) / 50000,
-            }
+        collection.update_one(
+            {"name": "portfolio_percentage"},
+            {"$set": {"portfolio_value": (portfolio_value - 50000) / 50000}},
+            upsert=True,
         )
-        collection.insert_one(
-            {
-                "name": "ndaq_percentage",
-                "portfolio_value": (get_latest_price("QQQ") - 503.17) / 503.17,
-            }
+
+        qqq_latest = get_latest_price("QQQ")
+        collection.update_one(
+            {"name": "ndaq_percentage"},
+            {"$set": {"portfolio_value": (qqq_latest - 503.17) / 503.17}},
+            upsert=True,
         )
-        collection.insert_one(
-            {
-                "name": "spy_percentage",
-                "portfolio_value": (get_latest_price("SPY") - 590.50) / 590.50,
-            }
+
+        spy_latest = get_latest_price("SPY")
+        collection.update_one(
+            {"name": "spy_percentage"},
+            {"$set": {"portfolio_value": (spy_latest - 590.50) / 590.50}},
+            upsert=True,
         )
+
         client.close()
         print("Successfully initialized portfolio percentages")
     except Exception as exception:
@@ -270,11 +283,14 @@ def initialize_indicator_setup():
         db = client["IndicatorsDatabase"]
         collection = db["Indicators"]
 
-        # Insert indicators into the collection
         for indicator, period in indicator_periods.items():
-            collection.insert_one({"indicator": indicator, "ideal_period": period})
+            collection.update_one(
+                {"indicator": indicator},
+                {"$set": {"ideal_period": period}},
+                upsert=True,
+            )
 
-        print("Indicators and their ideal periods have been inserted into MongoDB.")
+        print("Indicators and their ideal periods are ensured in MongoDB.")
     except Exception as e:
         print(e)
         return
