@@ -16,7 +16,7 @@ ripser
 datetime
 TA-Lib
 pandas-ta
-git+https://github.com/NitinDatta8/quantstats.git
+git+https://github.com/AmpyFin/quantstats.git
 wandb
 pre-commit
 black==25.1.0
