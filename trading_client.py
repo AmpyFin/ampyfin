@@ -25,6 +25,7 @@ from helper_files.client_helper import (
     market_status,
     place_order,
     strategies,
+    check_pending_orders,
 )
 from strategies.talib_indicators import get_data, simulate_strategy
 
@@ -277,6 +278,8 @@ def main():
     # limits_collection = db.assets_limit
     strategy_to_coefficient = {}
     sold = False
+    last_pending_check_time = time.time()
+    
     while True:
         client = RESTClient(api_key=POLYGON_API_KEY)
         trading_client = TradingClient(API_KEY, API_SECRET)
@@ -291,6 +294,16 @@ def main():
         # indicator_collection = indicator_tb.Indicators
 
         market_collection.update_one({}, {"$set": {"market_status": status}})
+        
+        # Check for pending orders every 5 minutes (300 seconds)
+        current_time = time.time()
+        if current_time - last_pending_check_time > 300:
+            try:
+                logging.info("Checking pending orders...")
+                check_pending_orders(trading_client, mongo_client)
+                last_pending_check_time = current_time
+            except Exception as e:
+                logging.error(f"Error checking pending orders: {e}")
 
         if status == "open":
             if not ndaq_tickers:

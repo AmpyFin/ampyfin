@@ -314,7 +314,8 @@ def connect_to_mongo(mongo_url):
 # Helper to place an order
 def place_order(trading_client, symbol, side, quantity, mongo_client):
     """
-    Place a market order and log the order to MongoDB.
+    Place a market order and log the order to MongoDB only when the order is filled.
+    Includes a retry mechanism to periodically check order status.
 
     :param trading_client: The Alpaca trading client instance
     :param symbol: The stock symbol to trade
@@ -328,11 +329,35 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
         symbol=symbol, qty=quantity, side=side, time_in_force=TimeInForce.DAY
     )
     order = trading_client.submit_order(market_order_data)
+    order_id = order.id
     qty = round(quantity, 3)
     current_price = get_latest_price(symbol)
     stop_loss_price = round(current_price * (1 - stop_loss), 2)  # 3% loss
     take_profit_price = round(current_price * (1 + take_profit), 2)  # 5% profit
 
+    # Check if order is filled immediately
+    order_status = trading_client.get_order_by_id(order_id).status
+    
+    # If order is not filled immediately, set up a tracker in MongoDB
+    if order_status != "filled":
+        db = mongo_client.trades
+        db.pending_orders.insert_one({
+            "order_id": order_id,
+            "symbol": symbol,
+            "qty": qty,
+            "side": side.name,
+            "time_in_force": TimeInForce.DAY.name,
+            "submitted_at": datetime.now(tz=timezone.utc),
+            "status": order_status,
+            "stop_loss_price": stop_loss_price,
+            "take_profit_price": take_profit_price,
+            "retries": 0,
+            "max_retries": 10  # Check up to 10 times
+        })
+        logging.info(f"Order for {symbol} is {order_status}. Added to pending orders queue.")
+        return order
+    
+    # If order is filled immediately, update MongoDB
     # Log trade details to MongoDB
     db = mongo_client.trades
     db.paper.insert_one(
@@ -342,6 +367,9 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
             "side": side.name,
             "time_in_force": TimeInForce.DAY.name,
             "time": datetime.now(tz=timezone.utc),
+            "status": "filled",
+            "filled": True,
+            "order_id": order_id
         }
     )
 
@@ -368,6 +396,94 @@ def place_order(trading_client, symbol, side, quantity, mongo_client):
             limits.delete_one({"symbol": symbol})
 
     return order
+
+
+def check_pending_orders(trading_client, mongo_client):
+    """
+    Periodically check pending orders to see if they've been filled.
+    If filled, update MongoDB accordingly.
+    
+    :param trading_client: The Alpaca trading client instance
+    :param mongo_client: MongoDB client instance
+    """
+    db = mongo_client.trades
+    pending_orders = list(db.pending_orders.find({"retries": {"$lt": 10}}))
+    
+    for pending_order in pending_orders:
+        try:
+            order_id = pending_order["order_id"]
+            order = trading_client.get_order_by_id(order_id)
+            order_status = order.status
+            
+            # Update retry count
+            db.pending_orders.update_one(
+                {"order_id": order_id},
+                {"$inc": {"retries": 1}, "$set": {"status": order_status}}
+            )
+            
+            if order_status == "filled":
+                # Order has been filled, update MongoDB
+                symbol = pending_order["symbol"]
+                qty = pending_order["qty"]
+                side = pending_order["side"]
+                stop_loss_price = pending_order["stop_loss_price"]
+                take_profit_price = pending_order["take_profit_price"]
+                
+                # Log the filled order
+                db.paper.insert_one(
+                    {
+                        "symbol": symbol,
+                        "qty": qty,
+                        "side": side,
+                        "time_in_force": pending_order["time_in_force"],
+                        "time": datetime.now(tz=timezone.utc),
+                        "status": "filled",
+                        "filled": True,
+                        "order_id": order_id
+                    }
+                )
+                
+                # Track assets
+                assets = db.assets_quantities
+                limits = db.assets_limit
+                
+                if side == "BUY":
+                    assets.update_one({"symbol": symbol}, {"$inc": {"quantity": qty}}, upsert=True)
+                    limits.update_one(
+                        {"symbol": symbol},
+                        {
+                            "$set": {
+                                "stop_loss_price": stop_loss_price,
+                                "take_profit_price": take_profit_price,
+                            }
+                        },
+                        upsert=True,
+                    )
+                elif side == "SELL":
+                    assets.update_one({"symbol": symbol}, {"$inc": {"quantity": -qty}}, upsert=True)
+                    if assets.find_one({"symbol": symbol})["quantity"] == 0:
+                        assets.delete_one({"symbol": symbol})
+                        limits.delete_one({"symbol": symbol})
+                
+                # Remove from pending orders
+                db.pending_orders.delete_one({"order_id": order_id})
+                logging.info(f"Order for {symbol} has been filled and processed.")
+            
+            elif order_status in ["canceled", "expired", "rejected"]:
+                # Order failed, remove from pending orders
+                db.pending_orders.delete_one({"order_id": order_id})
+                logging.info(f"Order {order_id} for {pending_order['symbol']} has status {order_status}. Removed from pending orders.")
+            
+            elif pending_order["retries"] >= 9:
+                # Max retries reached, log and keep in database with flag
+                db.pending_orders.update_one(
+                    {"order_id": order_id},
+                    {"$set": {"max_retries_reached": True}}
+                )
+                logging.warning(f"Max retries reached for order {order_id}. Final status: {order_status}")
+                
+        except Exception as e:
+            logging.error(f"Error checking order {pending_order['order_id']}: {e}")
 
 
 # Helper to retrieve NASDAQ-100 tickers from MongoDB
