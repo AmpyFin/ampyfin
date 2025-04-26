@@ -44,16 +44,7 @@ logging.basicConfig(
 
 def process_ticker(ticker, mongo_client):
     try:
-        current_price = None
-        while current_price is None:
-            try:
-                current_price = get_latest_price(ticker)
-            except Exception as fetch_error:
-                logging.warning(
-                    f"Error fetching price for {ticker}. Retrying... {fetch_error}"
-                )
-
-                return
+        current_price = get_latest_price(ticker)
 
         indicator_tb = mongo_client.IndicatorsDatabase
         indicator_collection = indicator_tb.Indicators
@@ -72,6 +63,7 @@ def process_ticker(ticker, mongo_client):
                         f"Error fetching historical data for {ticker}. Retrying... {fetch_error}"
                     )
                     time.sleep(60)
+
             db = mongo_client.trading_simulator
             holdings_collection = db.algorithm_holdings
             print(f"Processing {strategy.__name__} for {ticker}")
@@ -398,7 +390,15 @@ def update_ranks(client):
     print("Successfully updated ranks")
     print("Successfully deleted historical database")
 
-
+def process_market_open(mongo_client, ndaq_tickers):
+    update_ranks(mongo_client)
+            
+    for ticker in ndaq_tickers:
+        process_ticker(ticker, mongo_client)
+    
+    logging.info("Finished processing all strategies. Waiting for 30 seconds.")
+    time.sleep(30)
+    
 def main():
     """
     Main function to control the workflow based on the market's status.
@@ -407,36 +407,15 @@ def main():
     early_hour_first_iteration = True
     post_market_hour_first_iteration = True
 
+    ndaq_tickers = get_ndaq_tickers()
+
     while True:
         mongo_client = MongoClient(mongo_url, tlsCAFile=ca)
 
         status = mongo_client.market_data.market_status.find_one({})["market_status"]
 
         if status == "open":
-            # Connection pool is not thread safe. Create a new client for each thread.
-            # We can use ThreadPoolExecutor to manage threads - maybe use this but this risks clogging
-            # resources if we have too many threads or if a thread is on stall mode
-            # We can also use multiprocessing.Pool to manage threads
-            update_ranks(mongo_client)
-            if not ndaq_tickers:
-                logging.info("Market is open. Processing strategies.")
-                ndaq_tickers = get_ndaq_tickers()
-
-            threads = []
-
-            for ticker in ndaq_tickers:
-                thread = threading.Thread(
-                    target=process_ticker, args=(ticker, mongo_client)
-                )
-                threads.append(thread)
-                thread.start()
-
-            # Wait for all threads to complete
-            for thread in threads:
-                thread.join()
-
-            logging.info("Finished processing all strategies. Waiting for 30 seconds.")
-            time.sleep(30)
+            process_market_open(mongo_client, ndaq_tickers)
 
         elif status == "early_hours":
             # During early hour, currently we only support prep

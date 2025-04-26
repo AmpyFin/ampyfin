@@ -226,7 +226,7 @@ def process_ticker(ticker, mongo_client, strategy_to_coefficient):
                     quantity=portfolio_qty,
                     mongo_client=mongo_client,
                 )
-                logging.info(f"Executed SELL order for {ticker}: {order}")
+                logging.info(f"Executing SELL order for {ticker}: {order}")
                 ib.disconnect()
                 return
 

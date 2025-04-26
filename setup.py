@@ -153,7 +153,10 @@ indicator_periods = {
     "VAR_indicator": "2y",
 }
 
-
+'''
+Important function. 
+Its at core of how we calculate the rank of a strategy.
+'''
 def insert_rank_to_coefficient(i):
     try:
         client = MongoClient(mongo_url)
