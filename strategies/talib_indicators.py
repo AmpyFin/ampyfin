@@ -7,6 +7,7 @@ import talib as ta
 import yfinance as yf
 
 from control import trade_asset_limit
+from utils.session import limiter
 
 sys.path.append("..")
 
@@ -26,7 +27,7 @@ def get_data(ticker, mongo_client, period=None, start_date=None, end_date=None):
                     df.set_index("Date", inplace=True)
                     return df
                 else:
-                    ticker_obj = yf.Ticker(ticker)
+                    ticker_obj = yf.Ticker(ticker, session=limiter)
                     data = ticker_obj.history(period=period)
 
                     records = data.reset_index().to_dict("records")
@@ -43,7 +44,9 @@ def get_data(ticker, mongo_client, period=None, start_date=None, end_date=None):
         return data
     else:
         try:
-            return yf.Ticker(ticker).history(start=start_date, end=end_date)
+            return yf.Ticker(ticker, session=limiter).history(
+                start=start_date, end=end_date
+            )
         except Exception as e:
             print(f"Error fetching data for {ticker}: {e}")
             time.sleep(10)

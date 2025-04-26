@@ -25,6 +25,7 @@ from control import (
 )
 from helper_files.client_helper import get_ndaq_tickers, strategies
 from helper_files.train_client_helper import get_historical_data
+from utils.session import limiter
 
 # from strategies.talib_indicators import *
 
@@ -91,6 +92,7 @@ def initialize_simulation(
             interval="1d",
             group_by="ticker",
             threads=True,
+            session=limiter,
         )
     except Exception as bulk_err:
         logger.error(f"Bulk download failed: {str(bulk_err)}")
@@ -120,7 +122,9 @@ def initialize_simulation(
                 f"Error retrieving specific date range for {ticker} via bulk download, fetching max available data. Error: {str(e)}"
             )
             try:
-                ticker_data = yf.Ticker(ticker).history(period="max", interval="1d")
+                ticker_data = yf.Ticker(ticker, session=limiter).history(
+                    period="max", interval="1d"
+                )
                 if ticker_data.empty:
                     logger.warning(
                         f"No data available for {ticker} even for max period."

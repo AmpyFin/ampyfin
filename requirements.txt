@@ -2,7 +2,7 @@ polygon-api-client
 pymongo
 certifi
 alpaca-py
-yfinance
+yfinance[nospam]
 scipy
 pandas
 cython

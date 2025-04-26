@@ -145,6 +145,7 @@ from strategies.talib_indicators import (
     WILLR_indicator,
     WMA_indicator,
 )
+from utils.session import limiter
 
 sys.path.append("..")
 
@@ -456,7 +457,7 @@ def get_latest_price(ticker):
     :return: The latest price of the stock
     """
     try:
-        ticker_yahoo = yf.Ticker(ticker)
+        ticker_yahoo = yf.Ticker(ticker, session=limiter)
         data = ticker_yahoo.history()
 
         return round(data["Close"].iloc[-1], 2)
@@ -480,7 +481,7 @@ def dynamic_period_selector(ticker):
 
     for period in periods:
         try:
-            data = yf.Ticker(ticker).history(period=period)
+            data = yf.Ticker(ticker, session=limiter).history(period=period)
             if data.empty:
                 continue
 
