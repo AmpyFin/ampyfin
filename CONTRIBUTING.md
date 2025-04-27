@@ -6,11 +6,11 @@ Thank you for your interest in contributing! This guide reviews how to be a part
 
 Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to keep our community respectful and welcoming.
 
-This applies to everyone collaborating with the codebase, [Issue Tracker](https://github.com/AmpyFin/AmpyFin/issues), and [Discussion Board](https://github.com/AmpyFin/AmpyFin/discussions).
+This applies to everyone collaborating with the codebase, [Issue Tracker](https://github.com/AmpyFin/ampyfin/issues), and [Discussion Board](https://github.com/AmpyFin/ampyfin/discussions).
 
 ## Reporting Issues
 
-Our [GitHub Issue Tracker](https://github.com/AmpyFin/AmpyFin/issues) is the place to start. If you've encountered a problem in AmpyFin, check to see it hasn't already been reported.
+Our [GitHub Issue Tracker](https://github.com/AmpyFin/ampyfin/issues) is the place to start. If you've encountered a problem in AmpyFin, check to see it hasn't already been reported.
 
 Each issue needs to include a title and a clear description of the problem. Add as much information as you can to make it easy to reproduce the issue and determine a fix.
 
@@ -26,14 +26,14 @@ If you can reproduce a reported issue, add a comment confirming it. Provide any 
 
 ### Test a patch
 
-You can also help by looking at [pull requests](https://github.com/AmpyFin/AmpyFin/pulls) that have been submitted. To test someone's changes, create a dedicated branch:
+You can also help by looking at [pull requests](https://github.com/AmpyFin/ampyfin/pulls) that have been submitted. To test someone's changes, create a dedicated branch:
 ```bash
 git checkout -b test_branch
 ```
 
 Then, use their remote branch to update your codebase. Example, SomeUser has a fork and pushed to branch 'feature':
 ```bash
-git remote add SomeUser https://github.com/SomeUser/AmpyFin.git
+git remote add SomeUser https://github.com/SomeUser/ampyfin.git
 git pull SomeUser feature
 ```
 
@@ -49,11 +49,11 @@ We recommend using the provided Dev Container for development. This ensures a co
 
 Clone the AmpyFin repository:
 ```bash
-git clone https://github.com/AmpyFin/AmpyFin.git
+git clone https://github.com/AmpyFin/ampyfin.git
 ```
 Create a topic branch:
-```
-cd AmpyFin
+```bash
+cd ampyfin
 git checkout -b new_branch
 ```
 
@@ -140,38 +140,38 @@ The AmpyFin repository base does not allow force pushing, but you are able to fo
 
 ### Fork
 
-Goto [AmpyFin](https://github.com/AmpyFin/AmpyFin) and press "Fork". Add the new remote to your local repository:
+Go to [ampyfin](https://github.com/AmpyFin/ampyfin) and press "Fork". Add the new remote to your local repository:
 ```bash
-git remote add fork https://github.com/your-user-name/AmpyFin.git
+git remote add fork https://github.com/your-user-name/ampyfin.git
 ```
 
-Whether you cloned your local repository from ampyfin/ampyfin, or your forked repository, the following commands expect you have made a "ampyfin" remote pointing to ampyfin/ampyfin.
+If you cloned your repository directly from AmpyFin/ampyfin, you already have the upstream remote. If not, add it:
 ```bash
-git remote add ampyfin https://github.com/ampyfin/ampyfin.git
+git remote add AmpyFin https://github.com/AmpyFin/ampyfin.git
 ```
 
-Get new commits and branches from official:
+Get new commits and branches from the official repository:
 ```bash
-git fetch ampyfin
+git fetch AmpyFin
 ```
 
 Merge new content:
 ```bash
 git checkout main
-git rebase ampyfin/main
+git rebase AmpyFin/main
 git checkout new_branch
-git rebase ampyfin/main
+git rebase AmpyFin/main
 ```
 
 Update fork:
 ```bash
-git push fork ampyfin
+git push fork main
 git push fork new_branch
 ```
 
 ### Opening a Pull Request
 
-Goto your AmpyFin repo (https://github.com/your-user-name/AmpyFin) and click "Pull Requests". Your pull should target the base repository `ampyfin/ampyfin` and the branch `main`. The head repo will be your changes (`your-user-name/ampyfin`), with the branch name you gave. Verify changeset, fill in details, and create the pull request.
+Go to your ampyfin repo (https://github.com/your-user-name/ampyfin) and click "Pull Requests". Your pull should target the base repository `AmpyFin/ampyfin` and the branch `main`. The head repo will be your changes (`your-user-name/ampyfin`), with the branch name you gave. Verify changeset, fill in details, and create the pull request.
 
 ### Getting Feedback
 

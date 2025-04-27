@@ -81,8 +81,8 @@ Each strategy is evaluated based on performance metrics and assigned a weight us
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yeonholee50/AmpyFin.git
-cd AmpyFin
+git clone https://github.com/AmpyFin/ampyfin.git
+cd ampyfin
 ```
 
 2. **Install dependencies**
@@ -93,11 +93,41 @@ pip install -r requirements.txt
 
 3. **Install TA-Lib**
 
-TA-Lib is required for technical indicators. Installation options:
-- [TA-Lib Python Original](https://github.com/TA-Lib/ta-lib-python)
-- [TA-Lib Python Easy Installation](https://github.com/cgohlke/talib-build/releases)
+TA-Lib is required for technical indicators. Choose one of these installation options:
 
-4. **Configure API keys**
+**Option 1**: Use pre-built binaries (Recommended for Windows users)
+- Download the appropriate wheel file for your Python version from [here](https://github.com/cgohlke/talib-build/releases)
+- Install it with pip:
+  ```bash
+  pip install <downloaded-wheel-file>.whl
+  ```
+
+**Option 2**: Build from source (For Linux/Mac users)
+- Follow the instructions on the [TA-Lib Python](https://github.com/TA-Lib/ta-lib-python) repository
+
+4. **Set up MongoDB**
+
+MongoDB is used for storing trading data and strategy results. Here's how to set it up:
+
+- **Option A**: MongoDB Atlas (Cloud-hosted, recommended for beginners)
+  1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+  2. Create a new cluster (the free tier is sufficient)
+  3. Set up database access (username/password)
+  4. Add your IP address to the network access whitelist
+  5. Get your connection string, which will look like:
+     ```
+     mongodb+srv://<username>:<password>@cluster0.mongodb.net/ampyfin
+     ```
+
+- **Option B**: Local MongoDB Installation
+  1. [Download and install MongoDB Community Edition](https://www.mongodb.com/try/download/community)
+  2. Start the MongoDB service
+  3. Your connection string will be:
+     ```
+     mongodb://localhost:27017/ampyfin
+     ```
+
+5. **Configure API keys**
 
 You need to sign up for the following services to obtain API keys:
 
@@ -120,12 +150,6 @@ MONGO_URL = "your_mongo_connection_string"
 ```
 
 > ⚠️ **IMPORTANT**: The default configuration uses Alpaca's paper trading environment. To switch to live trading (using real money), change the BASE_URL to "https://api.alpaca.markets". Only do this once you've thoroughly tested your strategies and understand the risks involved.
-
-5. **Set up MongoDB**
-
-- Create a MongoDB cluster (e.g., via MongoDB Atlas)
-- Configure network access for your IP address
-- Update the connection string in `.env`
 
 6. **Run the setup script**
 
