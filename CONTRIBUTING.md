@@ -16,7 +16,7 @@ Each issue needs to include a title and a clear description of the problem. Add 
 
 Once the issue is open, be patient. Others can find your issue, and confirm it, or may collaborate with you on a fix. If you know how to fix the issue, open a pull request.
 
-## Help Resolve Exsisting Issues
+## Help Resolve Existing Issues
 
 Beyond reporting issues, you can help resolve existing ones by providing feedback.
 
