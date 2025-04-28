@@ -10,6 +10,9 @@
 
 ## Introduction
 
+[![Watch the demo](https://img.youtube.com/vi/K60sDprVrj8/maxresdefault.jpg)](https://youtu.be/K60sDprVrj8)
+
+
 AmpyFin is an advanced AI-powered trading system designed to trade within the NASDAQ-100. It leverages machine learning and algorithmic trading strategies to make data-driven investment decisions.
 
 ### Mission
