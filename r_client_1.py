@@ -1,3 +1,17 @@
+'''
+MODIFICATIONS: 
+- Refactor code to improve readability and maintainability
+
+TODO: 
+- # The current price can be gotten through a cache system maybe
+            # if polygon api is getting clogged - but that hasn't happened yet
+            # Also implement in C++ or C instead of python
+            # Get the current price of the ticker from the Polygon API
+            # Use a cache system to store the latest prices
+            # If the cache is empty, fetch the latest price from the Polygon API
+            # Cache should be updated every 60 seconds
+'''
+
 import heapq
 import logging
 import time
