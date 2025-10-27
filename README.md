@@ -27,6 +27,16 @@ While there are many theoretical trading models in academic literature, AmpyFin 
 
 For a comprehensive guide on how to use AmpyFin, check out our [YouTube tutorial playlist](https://www.youtube.com/playlist?list=PL7hzGb_OBFXaB7VGaXXiJk5uq2CXQqi-O).
 
+## Documentation
+
+📚 **Comprehensive documentation is now available!** Check out the detailed guides in the `docs/` folder:
+
+- **[Configuration Guide](docs/configuration.md)** - Complete setup instructions, risk management, and parameter tuning
+- **[Trading Strategies](docs/strategies.md)** - 100+ TA-Lib indicators, strategy categories, and custom development
+- **[Database Schema](docs/database-schema.md)** - MongoDB collections, SQLite structure, and data management
+- **[API Integration](docs/api-integration.md)** - Broker APIs, data providers, and external services
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues, solutions, and debugging techniques
+
 ## Features
 
 ### Data Collection
@@ -222,6 +232,26 @@ For live trading, it's recommended to:
 2. Train using the TradeSim module and push changes to MongoDB before executing trades
 
 This ensures the system has properly ranked strategies before making investment decisions.
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+- **[Configuration Guide](docs/configuration.md)** - Detailed configuration parameters and setup instructions
+- **[Trading Strategies](docs/strategies.md)** - Complete guide to implemented strategies and TA-Lib indicators
+- **[Database Schema](docs/database-schema.md)** - MongoDB and SQLite database structure documentation
+- **[API Integration](docs/api-integration.md)** - Broker APIs, data providers, and external service integration
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues, solutions, and debugging techniques
+
+### Quick Reference
+
+| Topic | Documentation | Description |
+|-------|---------------|-------------|
+| **Setup** | [Configuration Guide](docs/configuration.md) | Environment setup, API keys, risk management |
+| **Strategies** | [Trading Strategies](docs/strategies.md) | 100+ TA-Lib indicators, custom strategy development |
+| **Data** | [Database Schema](docs/database-schema.md) | MongoDB collections, SQLite structure, data flow |
+| **APIs** | [API Integration](docs/api-integration.md) | Alpaca, IBKR, yfinance, Weights & Biases |
+| **Issues** | [Troubleshooting Guide](docs/troubleshooting.md) | Common problems, solutions, debugging |
 
 ## Contributing
 
