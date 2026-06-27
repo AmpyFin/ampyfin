@@ -287,6 +287,55 @@ def store_price_data_sqlite(ticker, data, db_path):
     conn.close()
 ```
 
+## Adanos Market Sentiment Integration (Optional)
+
+### Overview
+
+Adanos provides optional market sentiment and attention features for equities
+from Reddit, X / FinTwit, financial news, and Polymarket. AmpyFin does not
+require Adanos for core training, backtesting, or execution. Use it only when
+you want to add external sentiment features to a ticker universe before running
+your own strategy or model pipeline.
+
+### Setup and Configuration
+
+```bash
+# .env file or shell environment
+ADANOS_API_KEY=your_adanos_api_key
+```
+
+### Feature Retrieval
+
+```python
+from utilities.adanos_sentiment import fetch_adanos_features
+
+sentiment_features = fetch_adanos_features(
+    ["AAPL", "MSFT", "NVDA"],
+    source="reddit",
+    start_date="2026-06-01",
+    end_date="2026-06-27",
+)
+
+print(sentiment_features.columns)
+# Index([
+#   "Ticker", "adanos_source", "adanos_sentiment_score",
+#   "adanos_buzz_score", "adanos_bullish_pct", "adanos_bearish_pct",
+#   "adanos_mentions", "adanos_trend"
+# ])
+```
+
+### Merging with Existing AmpyFin Data
+
+```python
+from utilities.common_utils import fetch_price_from_db
+
+price_data = fetch_price_from_db(start_date, end_date, ["AAPL", "MSFT", "NVDA"])
+price_with_sentiment = price_data.merge(sentiment_features, on="Ticker", how="left")
+```
+
+Keep sentiment features separate from order execution and broker credentials.
+They are external research inputs, not trade instructions.
+
 ## Weights & Biases Integration
 
 ### Overview
