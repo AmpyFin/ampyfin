@@ -18,7 +18,7 @@ pandas-ta
 git+https://github.com/AmpyFin/quantstats.git
 wandb
 pre-commit
-black==25.1.0
+black==26.3.1
 isort==6.0.1
 flake8==7.1.2
 requests_ratelimiter
